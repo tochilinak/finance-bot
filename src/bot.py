@@ -6,13 +6,16 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Conv
 
 def start(update: Update, context: CallbackContext):
     update.message.reply_text("Hello" "I am finance bot")
-    update.message.reply_text("You can get information about commands with /help")
+    update.message.reply_text("You can always get list of commands with /help")
+    help_bot(update, context)
 
 
 def help_bot(update: Update, context: CallbackContext):
+    update.message.reply_text("This is list of available commands:")
     update.message.reply_text(
         "/start - start me\n"
         "/help - get some information\n"
+        "/price - get company share price\n"
     )
 
 
