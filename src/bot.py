@@ -19,7 +19,7 @@ def help_bot(update: Update, context: CallbackContext):
     )
 
 
-def company_choise_handler(fallbacks, action_after_select, next_key):
+def company_choise_handler(fallbacks, action_after_select, next_key, exchange_selection=True):
     """
     Note: action_after_select must return next_key
     """
@@ -39,17 +39,20 @@ def company_choise_handler(fallbacks, action_after_select, next_key):
         action_after_select(update, context)
         return next_key
 
-    handler = ConversationHandler(
-        entry_points=[CommandHandler("skip", skip_stock_exchange),
-                      MessageHandler(Filters.text & ~Filters.command, stock_exchange)],
-        states={
-            "company": [MessageHandler(Filters.text & ~Filters.command, company)]
-        },
-        fallbacks=fallbacks,
-        map_to_parent={
-            next_key: next_key
-        }
-    )
+    if exchange_selection:
+        handler = ConversationHandler(
+            entry_points=[CommandHandler("skip", skip_stock_exchange),
+                          MessageHandler(Filters.text & ~Filters.command, stock_exchange)],
+            states={
+                "company": [MessageHandler(Filters.text & ~Filters.command, company)]
+            },
+            fallbacks=fallbacks,
+            map_to_parent={
+                next_key: next_key
+            }
+        )
+    else:
+        handler = MessageHandler(Filters.text & ~Filters.command, company)
 
     return handler
 
