@@ -40,7 +40,8 @@ def company_choise_handler(fallbacks, action_after_select, next_key):
         return next_key
 
     handler = ConversationHandler(
-        entry_points=[CommandHandler("skip", skip_stock_exchange), MessageHandler(Filters.text & ~Filters.command, stock_exchange)],
+        entry_points=[CommandHandler("skip", skip_stock_exchange),
+                      MessageHandler(Filters.text & ~Filters.command, stock_exchange)],
         states={
             "company": [MessageHandler(Filters.text & ~Filters.command, company)]
         },
@@ -54,7 +55,8 @@ def company_choise_handler(fallbacks, action_after_select, next_key):
 
 
 def price_start(update: Update, context: CallbackContext):
-    update.message.reply_text("Ok, now I need to know the company you are interested in\n" "Enter stock_exchange name or /skip")
+    update.message.reply_text("Ok, now I need to know the company you are interested in\n" "Enter stock_exchange name "
+                              "or /skip")
     update.message.reply_text("You can stop with /cancel")
     return "stock_exchange"
 
