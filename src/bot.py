@@ -15,7 +15,7 @@ def help_bot(update: Update, context: CallbackContext):
     update.message.reply_text(
         "/start - start me\n"
         "/help - get some information\n"
-        "/price - get company share price\n"
+        "/price - get company stock price\n"
     )
 
 
@@ -23,13 +23,13 @@ def company_choise_handler(fallbacks, action_after_select, next_key):
     """
     Note: action_after_select must return next_key
     """
-    def stock(update: Update, context: CallbackContext):
+    def stock_exchange(update: Update, context: CallbackContext):
         text = update.message.text
-        context.user_data['stock'] = text
+        context.user_data['stock_exchange'] = text
         update.message.reply_text("Ok, now enter a company ticker")
         return "company"
 
-    def skip_stock(update: Update, context: CallbackContext):
+    def skip_stock_exchange(update: Update, context: CallbackContext):
         update.message.reply_text("Ok, just enter a company ticker")
         return "company"
 
@@ -40,7 +40,7 @@ def company_choise_handler(fallbacks, action_after_select, next_key):
         return next_key
 
     handler = ConversationHandler(
-        entry_points=[CommandHandler("skip", skip_stock), MessageHandler(Filters.text & ~Filters.command, stock)],
+        entry_points=[CommandHandler("skip", skip_stock_exchange), MessageHandler(Filters.text & ~Filters.command, stock_exchange)],
         states={
             "company": [MessageHandler(Filters.text & ~Filters.command, company)]
         },
@@ -54,9 +54,9 @@ def company_choise_handler(fallbacks, action_after_select, next_key):
 
 
 def price_start(update: Update, context: CallbackContext):
-    update.message.reply_text("Ok, now I need to know the company you are interested in\n" "Enter stock name or /skip")
+    update.message.reply_text("Ok, now I need to know the company you are interested in\n" "Enter stock_exchange name or /skip")
     update.message.reply_text("You can stop with /cancel")
-    return "stock"
+    return "stock_exchange"
 
 
 def cancel(update: Update, context: CallbackContext):
@@ -87,7 +87,7 @@ def main():
         ConversationHandler(
             entry_points=[CommandHandler("price", price_start)],
             states={
-                "stock": [company_choise_handler([cancel_handler], request_period, "period")],
+                "stock_exchange": [company_choise_handler([cancel_handler], request_period, "period")],
                 "period": [MessageHandler(Filters.text & ~Filters.command, give_price)]
             },
             fallbacks=[cancel_handler]
