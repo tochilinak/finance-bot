@@ -36,7 +36,15 @@ def company_choise_handler(fallbacks, action_after_select, next_key, exchange_se
     def company(update: Update, context: CallbackContext):
         text = update.message.text
         context.user_data['company'] = text
-        action_after_select(update, context)
+        next_key_from_action = action_after_select(update, context)
+
+        try:
+            assert next_key_from_action == next_key
+        except AssertionError:
+            print("next_key_from_action != next_key")
+            update.message.reply_text("Something went wrong")
+            return ConversationHandler.END
+
         return next_key
 
     if exchange_selection:
