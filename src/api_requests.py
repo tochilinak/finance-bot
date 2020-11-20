@@ -13,9 +13,20 @@ def moex_cost(symbol):
                   if x[0] == symbol), None)
     return result
 
+
 def marketstack_cost(symbol):
     query = "http://api.marketstack.com/v1/tickers/" + symbol + "/intraday/latest"
     params = {"access_key": config.API_KEY_MARKETSTACK}
     r = requests.get(query, params=params)
     result = r.json()["close"]
     return result
+
+
+def moex_symbol_by_name(name):
+    query = ("https://iss.moex.com/iss/securities.json?q=" + name
+             + "&securities.columns=name,secid,group&iss.meta=off")
+    resp_raw = requests.get(query).text
+    resp = json.JSONDecoder().decode(resp_raw)
+    only_stock = filter(lambda x: x[2] == "stock_shares" and
+                        x[1].isupper(), resp['securities']['data'])
+    return [x[:2] for x in only_stock]
