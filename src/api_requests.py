@@ -36,7 +36,7 @@ def alphavantage_symbol_by_name(name):
     params = {"function": "SYMBOL_SEARCH", "keywords": name, "apikey":
               config.API_KEY_ALPHAVANTAGE}
     r = requests.get(query, params=params).json()["bestMatches"]
-    result = r[0]["1. symbol"] if len(r) > 0 else None
+    result = [x["1. symbol"] for x in r]
     return result
 
 
@@ -44,5 +44,11 @@ def current_cost(symbol):
     marketstack_result = marketstack_cost(symbol)
     if marketstack_result is not None:
         return marketstack_result
-
     return moex_cost(symbol)
+
+
+def symbol_by_name(name):
+    result_size = 5
+    moex_result = moex_symbol_by_name(name)[:result_size]
+    alphavantage_result = alphavantage_symbol_by_name(name)[:result_size]
+    return moex_result + alphavantage_result
