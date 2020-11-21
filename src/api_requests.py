@@ -38,3 +38,11 @@ def alphavantage_symbol_by_name(name):
     r = requests.get(query, params=params).json()["bestMatches"]
     result = r[0]["1. symbol"] if len(r) > 0 else None
     return result
+
+
+def current_cost(symbol):
+    marketstack_result = marketstack_cost(symbol)
+    if marketstack_result is not None:
+        return marketstack_result
+
+    return moex_cost(symbol)
