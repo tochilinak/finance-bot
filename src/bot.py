@@ -41,7 +41,7 @@ def get_company(update: Update, context: CallbackContext):
 def get_period(update: Update, context: CallbackContext):
     text = update.message.text
     context.user_data['period'] = text
-    update.message.reply_text("Price of " + context.user_data['company'] + " is unknown :(")
+    update.message.reply_text("Price of " + context.user_data['company'] + " is unknown :(")  # вот тут то и выдаём цену
     return ConversationHandler.END
 
 
