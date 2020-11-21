@@ -36,7 +36,7 @@ def alphavantage_symbol_by_name(name):
     params = {"function": "SYMBOL_SEARCH", "keywords": name, "apikey":
               config.API_KEY_ALPHAVANTAGE}
     r = requests.get(query, params=params).json()["bestMatches"]
-    result = [x["1. symbol"] for x in r]
+    result = [[x["2. name"], x["1. symbol"]] for x in r]
     return result
 
 
