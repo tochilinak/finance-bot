@@ -4,6 +4,9 @@ from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, ConversationHandler, MessageHandler
 
 
+CPDB = {"AAPL": 198}  # вместо этого нужна функция по обновлению базы данных с текущими ценами
+
+
 def start(update: Update, context: CallbackContext):
     update.message.reply_text("Hello\n" "I am finance bot")
     update.message.reply_text("You can always get list of commands with\n /help")
@@ -44,6 +47,10 @@ def get_period(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
+def update_current_price_db(context: CallbackContext):
+    context.job.context = CPDB
+
+
 def main():
     updater = Updater(token=TOKEN, use_context=True)
     dispatcher = updater.dispatcher
@@ -60,6 +67,13 @@ def main():
             },
             fallbacks=[cancel_handler]
         )
+    )
+
+    updater.job_queue.run_repeating(
+        callback=update_current_price_db,
+        interval=600,
+        context=CPDB,
+        name="cur_price_updater"
     )
 
     updater.start_polling()
