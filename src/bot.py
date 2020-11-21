@@ -5,8 +5,8 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Conv
 
 
 def start(update: Update, context: CallbackContext):
-    update.message.reply_text("Hello" "I am finance bot")
-    update.message.reply_text("You can always get list of commands with /help")
+    update.message.reply_text("Hello\n" "I am finance bot")
+    update.message.reply_text("You can always get list of commands with\n /help")
     help_bot(update, context)
 
 
@@ -20,8 +20,7 @@ def help_bot(update: Update, context: CallbackContext):
 
 
 def price_start(update: Update, context: CallbackContext):
-    update.message.reply_text("Ok, now I need to know the company you are interested in\n" "Enter stock_exchange name "
-                              "or /skip")
+    update.message.reply_text("Ok, now I need to know the company you are interested in\n" "Enter a company ticker ")
     update.message.reply_text("You can stop with /cancel")
     return "company"
 
