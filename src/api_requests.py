@@ -17,7 +17,7 @@ def marketstack_cost(symbol):
     query = "http://api.marketstack.com/v1/tickers/" + symbol + "/intraday/latest"
     params = {"access_key": config.API_KEY_MARKETSTACK}
     r = requests.get(query, params=params)
-    result = r.json()["close"]
+    result = r.json()["close"] if isinstance(r.json(), dict) and "close" in r.json().keys() else None
     return result
 
 
