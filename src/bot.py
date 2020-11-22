@@ -11,18 +11,14 @@ from api_requests import current_cost
 
 
 def start(update: Update, context: CallbackContext):
-    """
-        Send starting message to the user whose message generated this update
-    """
+    """Send starting message to user whose message generated this update."""
     update.message.reply_text("Hello\n" "I am finance bot")
     update.message.reply_text("You can always get list of commands with /help")
     help_bot(update, context)
 
 
 def help_bot(update: Update, context: CallbackContext):
-    """
-        Send info message to the user whose message generated this update
-    """
+    """Send info message to the user whose message generated this update."""
     update.message.reply_text("This is list of available commands:")
     update.message.reply_text(
         "/start - start me\n"
@@ -33,9 +29,9 @@ def help_bot(update: Update, context: CallbackContext):
 
 def price_start(update: Update, context: CallbackContext):
     """
-         Ask user about company ticker
-         This callback is executed by /price
-         Return key of next part of conversation
+    Ask user about company ticker. This callback is executed by /price.
+
+    Return key of next part of conversation
     """
     update.message.reply_text(
         "Ok, now I need to know the company you are interested in\n"
@@ -46,19 +42,17 @@ def price_start(update: Update, context: CallbackContext):
 
 
 def cancel(update: Update, context: CallbackContext):
-    """
-        End the conversation
-    """
+    """End the conversation."""
     update.message.reply_text("Okay, we can do something else")
     return ConversationHandler.END
 
 
 def get_company(update: Update, context: CallbackContext):
     """
-        Get company name from user and start task,
-        that will tell the user company stock price
+    Get company name from user and start task.
 
-        In the end, end the conversation
+    This task will tell the user company stock price.
+    In the end, stop the conversation
     """
     text = update.message.text
     context.job_queue.run_once(
@@ -70,9 +64,7 @@ def get_company(update: Update, context: CallbackContext):
 
 
 def give_price(context: CallbackContext):
-    """
-        Send the company price to the chat with specified chat id
-    """
+    """Send the company price to the chat with specified chat id."""
     job_context = context.job.context
     company = job_context["company"]
     chat_id = job_context["chat_id"]
@@ -119,6 +111,8 @@ def main():
 
     # Start the bot
     updater.start_polling()
+
+    updater.idle()
 
 
 if __name__ == "__main__":
