@@ -1,10 +1,7 @@
 from random import randint
 from src.config import TOKEN
-from telegram import Update
+from telegram import Update, ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, ConversationHandler, MessageHandler
-
-
-CPDB = {"AAPL": 198}  # вместо этого нужна функция по обновлению базы данных с текущими ценами
 
 
 def start(update: Update, context: CallbackContext):
@@ -35,20 +32,23 @@ def cancel(update: Update, context: CallbackContext):
 
 def get_company(update: Update, context: CallbackContext):
     text = update.message.text
-    context.user_data['company'] = text
-    update.message.reply_text("Enter a period")
-    return "period"
-
-
-def get_period(update: Update, context: CallbackContext):
-    text = update.message.text
-    context.user_data['period'] = text
-    update.message.reply_text("Price of " + context.user_data['company'] + " is unknown :(")  # вот тут то и выдаём цену
+    context.job_queue.run_once(
+        callback=give_price,
+        when=0,
+        context={'chat_id': update.message.chat.id, "company": text}
+    )
     return ConversationHandler.END
 
 
-def update_current_price_db(context: CallbackContext):
-    context.job.context = CPDB
+def give_price(context: CallbackContext):
+    job_context = context.job.context
+    company = job_context["company"]
+    chat_id = job_context["chat_id"]
+    message_text = company + " is misterious for me"  # вот тут нужно найти цену
+    context.bot.send_message(
+        chat_id=chat_id,
+        text=message_text
+    )
 
 
 def main():
@@ -63,17 +63,9 @@ def main():
             entry_points=[CommandHandler("price", price_start)],
             states={
                 "company": [MessageHandler(Filters.text & ~Filters.command, get_company)],
-                "period": [MessageHandler(Filters.text & ~Filters.command, get_period)]
             },
             fallbacks=[cancel_handler]
         )
-    )
-
-    updater.job_queue.run_repeating(
-        callback=update_current_price_db,
-        interval=600,
-        context=CPDB,
-        name="cur_price_updater"
     )
 
     updater.start_polling()
