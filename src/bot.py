@@ -1,5 +1,11 @@
 from telegram import Update, ParseMode
-from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, ConversationHandler, MessageHandler
+from telegram.ext import (
+    Updater,
+    CommandHandler,
+    CallbackContext, Filters,
+    ConversationHandler,
+    MessageHandler
+)
 import config
 from api_requests import current_cost
 
@@ -9,7 +15,7 @@ def start(update: Update, context: CallbackContext):
         Send starting message to the user whose message generated this update
     """
     update.message.reply_text("Hello\n" "I am finance bot")
-    update.message.reply_text("You can always get list of commands with\n /help")
+    update.message.reply_text("You can always get list of commands with /help")
     help_bot(update, context)
 
 
@@ -31,7 +37,10 @@ def price_start(update: Update, context: CallbackContext):
          This callback is executed by /price
          Return key of next part of conversation
     """
-    update.message.reply_text("Ok, now I need to know the company you are interested in\n" "Enter a company ticker ")
+    update.message.reply_text(
+        "Ok, now I need to know the company you are interested in\n"
+        "Enter a company ticker "
+    )
     update.message.reply_text("You can stop with /cancel")
     return "company"
 
@@ -46,7 +55,9 @@ def cancel(update: Update, context: CallbackContext):
 
 def get_company(update: Update, context: CallbackContext):
     """
-        Get company name from user and start task, thet will tell the user company stock price
+        Get company name from user and start task,
+        that will tell the user company stock price
+
         In the end, end the conversation
     """
     text = update.message.text
@@ -92,12 +103,15 @@ def main():
     # Create handler for /cancel command
     cancel_handler = CommandHandler("cancel", cancel)
 
+    # Create filter for MessageHandler
+    simple_text_filter = Filters.text & ~Filters.command
+
     # Add conversation handler for /price command
     dispatcher.add_handler(
         ConversationHandler(
             entry_points=[CommandHandler("price", price_start)],
             states={
-                "company": [MessageHandler(Filters.text & ~Filters.command, get_company)],
+                "company": [MessageHandler(simple_text_filter, get_company)],
             },
             fallbacks=[cancel_handler]
         )
