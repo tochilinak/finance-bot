@@ -52,6 +52,7 @@ def alphavantage_symbol_by_name(name):
 def current_cost(symbol):
     """Find stock price by symbol.
 
+    Returns int (price) if found.
     Returns None if not found
     """
     marketstack_result = marketstack_cost(symbol)
@@ -63,7 +64,8 @@ def current_cost(symbol):
 def symbol_by_name(name, result_size=5):
     """Find symbol by company name using American and Russian api's.
 
-    Returns list of pairs [full_name, symbol].
+    Returns list of pairs of possible symbols:
+    [[full_name1, symbol1], [full_name2, symbol2], ...].
     result_size (default: 5) - maximum number of companies
     returned by one api
     """
