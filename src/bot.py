@@ -1,7 +1,7 @@
-from random import randint
-from config import TOKEN
 from telegram import Update, ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, ConversationHandler, MessageHandler
+import config
+from api_requests import current_cost
 
 
 def start(update: Update, context: CallbackContext):
@@ -44,7 +44,12 @@ def give_price(context: CallbackContext):
     job_context = context.job.context
     company = job_context["company"]
     chat_id = job_context["chat_id"]
-    message_text = company + " is misterious for me"  # вот тут нужно найти цену
+    company = company.upper()
+    price = current_cost(company)
+    if price is not None:
+        message_text = company + " stock pice is " + str(price)
+    else:
+        message_text = "i don't know this price"
     context.bot.send_message(
         chat_id=chat_id,
         text=message_text
@@ -52,7 +57,7 @@ def give_price(context: CallbackContext):
 
 
 def main():
-    updater = Updater(token=TOKEN, use_context=True)
+    updater = Updater(token=config.TOKEN, use_context=True)
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler("start", start))
