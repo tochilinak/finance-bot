@@ -1,5 +1,5 @@
 from random import randint
-from src.config import TOKEN
+from config import TOKEN
 from telegram import Update, ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, ConversationHandler, MessageHandler
 
