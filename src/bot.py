@@ -71,9 +71,9 @@ def give_price(context: CallbackContext):
     company = company.upper()
     price = current_cost(company)
     if price is not None:
-        message_text = company + " stock pice is " + str(price)
+        message_text = company + " stock price is " + str(price)
     else:
-        message_text = "i don't know this price"
+        message_text = "I don't know this price"
     context.bot.send_message(
         chat_id=chat_id,
         text=message_text
