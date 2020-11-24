@@ -7,7 +7,7 @@ from telegram.ext import (
     MessageHandler
 )
 import config
-from api_requests import current_cost
+from api_requests import current_cost, symbol_by_name
 
 
 def start(update: Update, context: CallbackContext):
@@ -22,9 +22,20 @@ def help_bot(update: Update, context: CallbackContext):
     update.message.reply_text("This is list of available commands:")
     update.message.reply_text(
         "/start - start me\n"
+        
         "/help - get some information\n"
+        
         "/price - get company stock price\n"
+        
+        "/find_company - find company by name. Use it if you want to know "
+        "company ticker\n"
     )
+
+
+def cancel(update: Update, context: CallbackContext):
+    """End the conversation."""
+    update.message.reply_text("Okay, we can do something else")
+    return ConversationHandler.END
 
 
 def price_start(update: Update, context: CallbackContext):
@@ -41,15 +52,9 @@ def price_start(update: Update, context: CallbackContext):
     return "company"
 
 
-def cancel(update: Update, context: CallbackContext):
-    """End the conversation."""
-    update.message.reply_text("Okay, we can do something else")
-    return ConversationHandler.END
-
-
 def get_company(update: Update, context: CallbackContext):
     """
-    Get company name from user and start task.
+    Get company ticker from user and start task.
 
     This task will tell the user company stock price.
     In the end, stop the conversation
@@ -80,8 +85,27 @@ def give_price(context: CallbackContext):
     )
 
 
-def main():
+def find_company(update: Update, context: CallbackContext):
+    """
+    Find companies by name.
 
+    Return list of companies (with tickers) with this name
+    """
+    # context.args is list of words after command
+    if not context.args:
+        update.message.reply_text(
+            'Use the command like this: "/find_company <company name>'
+        )
+        return
+    name = ' '.join(context.args)
+    companies = symbol_by_name(name)
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text="\n\n".join(["%:\n"])
+    )
+
+
+def main():
     # Create updater and dispather for bot
     updater = Updater(token=config.TOKEN, use_context=True)
     dispatcher = updater.dispatcher
@@ -94,6 +118,9 @@ def main():
 
     # Create handler for /cancel command
     cancel_handler = CommandHandler("cancel", cancel)
+
+    # Create handler for /find_company command
+    dispatcher.add_handler(CommandHandler("find_company", find_company))
 
     # Create filter for MessageHandler
     simple_text_filter = Filters.text & ~Filters.command
