@@ -89,10 +89,11 @@ def find_company(update: Update, context: CallbackContext):
     """
     Find companies by name.
 
+    Using ParseMode.MARKDOWN_V2 for bold text
     Return list of companies (with tickers) with this name
     """
 
-    def create_inf_line(name: str, ticker: str) -> str:
+    def create_info_line(name: str, ticker: str) -> str:
         """Create output line for markdown using company name and ticker."""
         for symbol in {"(", ")", "-", "."}:
             name = name.replace('%s' % symbol, r'\%s' % symbol)
@@ -101,14 +102,19 @@ def find_company(update: Update, context: CallbackContext):
         return res
 
     # context.args is list of words after command
+
     if not context.args:
         update.message.reply_text(
             'Use the command like this: "/find_company <company name>'
         )
         return
+
     name = ' '.join(context.args)
     companies = symbol_by_name(name)
-    text = "\n\n".join([create_inf_line(c[0], c[1]) for c in companies])
+
+    # "c" is "company"
+    text = "\n\n".join([create_info_line(c[0], c[1]) for c in companies])
+
     context.bot.send_message(
         chat_id=update.message.chat_id,
         text=text,
