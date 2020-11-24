@@ -22,11 +22,11 @@ def help_bot(update: Update, context: CallbackContext):
     update.message.reply_text("This is list of available commands:")
     update.message.reply_text(
         "/start - start me\n"
-        
+
         "/help - get some information\n"
-        
+
         "/price - get company stock price\n"
-        
+
         "/find_company - find company by name. Use it if you want to know "
         "company ticker\n"
     )
@@ -91,6 +91,15 @@ def find_company(update: Update, context: CallbackContext):
 
     Return list of companies (with tickers) with this name
     """
+
+    def create_inf_line(name: str, ticker: str) -> str:
+        """Create output line for markdown using company name and ticker."""
+        for symbol in {"(", ")", "-", "."}:
+            name = name.replace('%s' % symbol, r'\%s' % symbol)
+            ticker = ticker.replace('%s' % symbol, r'\%s' % symbol)
+        res = "%s:\n*%s*" % (name, ticker)
+        return res
+
     # context.args is list of words after command
     if not context.args:
         update.message.reply_text(
@@ -99,9 +108,11 @@ def find_company(update: Update, context: CallbackContext):
         return
     name = ' '.join(context.args)
     companies = symbol_by_name(name)
+    text = "\n\n".join([create_inf_line(c[0], c[1]) for c in companies])
     context.bot.send_message(
         chat_id=update.message.chat_id,
-        text="\n\n".join(["%:\n"])
+        text=text,
+        parse_mode=ParseMode.MARKDOWN_V2
     )
 
 
