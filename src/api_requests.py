@@ -1,6 +1,8 @@
 import requests
 import json
 import config
+import apimoex
+import datetime
 
 
 def moex_cost(symbol):
@@ -72,3 +74,41 @@ def symbol_by_name(name, result_size=5):
     moex_result = moex_symbol_by_name(name)[:result_size]
     alphavantage_result = alphavantage_symbol_by_name(name)[:result_size]
     return moex_result + alphavantage_result
+
+
+def parse_date(date):
+    """
+    Parse string with date to datetime object.
+    :param date: type - string.
+    :return: type - datetime.
+    """
+    date_list = list(map(int, date.split('-')))
+    return datetime.datetime(date_list[0], date_list[1], date_list[2])
+
+
+def get_period_data_of_cost_moex(start, end, name):
+    r = apimoex.get_board_history(requests.Session(), name, start, end)
+    return [[parse_date(x['TRADEDATE']) for x in r], [x['CLOSE'] for x in r]]
+
+
+def get_period_data_of_cost_marketstack(start, end, name):
+    query = "http://api.marketstack.com/v1/eod"
+    params = {"date_from": start, "date_to": end, "access_key":
+              config.API_KEY_MARKETSTACK, "symbols": name}
+    r = requests.get(query, params=params).json()["data"] if "data" in\
+        requests.get(query, params=params).json().keys() else []
+    r.reverse()
+    return [[parse_date(x["date"][:10]) for x in r], [x["close"] for x in r]]
+
+
+def get_period_data_of_cost(start, end, name):
+    """
+    Makes list with costs by the each day from the period.
+    :param start: begin of the period, type - string, format 'YYYY-MM-DD'.
+    :param end: end of the period, type - string, format 'YYYY-MM-DD'.
+    :param name: symbol of the company, type - string.
+    :return: list with dates as datetime objects, list with costs as integers.
+    """
+    result_moex = get_period_data_of_cost_moex(start, end, name)
+    result_marketstack = get_period_data_of_cost_marketstack(start, end, name)
+    return result_marketstack if len(result_marketstack[0]) else result_moex
