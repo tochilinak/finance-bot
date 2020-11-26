@@ -77,8 +77,8 @@ def symbol_by_name(name, result_size=5):
 
 
 def parse_date(date):
-    """
-    Parse string with date to datetime object.
+    """Parse string with date to datetime object.
+
     :param date: type - string.
     :return: type - datetime.
     """
@@ -86,29 +86,29 @@ def parse_date(date):
     return datetime.datetime(date_list[0], date_list[1], date_list[2])
 
 
-def get_period_data_of_cost_moex(start, end, name):
-    r = apimoex.get_board_history(requests.Session(), name, start, end)
+def get_period_data_of_cost_moex(start, end, symbol):
+    r = apimoex.get_board_history(requests.Session(), symbol, start, end)
     return [[parse_date(x['TRADEDATE']) for x in r], [x['CLOSE'] for x in r]]
 
 
-def get_period_data_of_cost_marketstack(start, end, name):
+def get_period_data_of_cost_marketstack(start, end, symbol):
     query = "http://api.marketstack.com/v1/eod"
     params = {"date_from": start, "date_to": end, "access_key":
-              config.API_KEY_MARKETSTACK, "symbols": name}
+              config.API_KEY_MARKETSTACK, "symbols": symbol}
     r = requests.get(query, params=params).json()["data"] if "data" in\
         requests.get(query, params=params).json().keys() else []
     r.reverse()
     return [[parse_date(x["date"][:10]) for x in r], [x["close"] for x in r]]
 
 
-def get_period_data_of_cost(start, end, name):
-    """
-    Makes list with costs by the each day from the period.
+def get_period_data_of_cost(start, end, symbol):
+    """Make list with costs by the each day from the period.
+
     :param start: begin of the period, type - string, format 'YYYY-MM-DD'.
     :param end: end of the period, type - string, format 'YYYY-MM-DD'.
-    :param name: symbol of the company, type - string.
+    :param symbol: symbol of the company, type - string.
     :return: list with dates as datetime objects, list with costs as integers.
     """
-    result_moex = get_period_data_of_cost_moex(start, end, name)
-    result_marketstack = get_period_data_of_cost_marketstack(start, end, name)
+    result_moex = get_period_data_of_cost_moex(start, end, symbol)
+    result_marketstack = get_period_data_of_cost_marketstack(start, end, symbol)
     return result_marketstack if len(result_marketstack[0]) else result_moex
