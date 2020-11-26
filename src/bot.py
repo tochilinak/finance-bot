@@ -72,15 +72,20 @@ def get_company(update: Update, context: CallbackContext):
 
 def give_price(context: CallbackContext):
     """Send the company price to the chat with specified chat id."""
+    # get information about chat id and company
     job_context: Optional[dict] = context.job.context
     company = job_context["company"]
     chat_id = job_context["chat_id"]
-    company = company.upper()
-    price = current_cost(company)
+
+    ticker = company.upper()
+
+    price = current_cost(ticker)
+
     if price is not None:
         message_text = company + " stock price is " + str(price)
     else:
         message_text = "I don't know this price"
+
     context.bot.send_message(
         chat_id=chat_id,
         text=message_text
@@ -91,8 +96,9 @@ def find_company(update: Update, context: CallbackContext):
     """
     Find companies by name.
 
-    Return list of companies (with tickers) with this name
-    Asks for a name if not specified
+    Give list of companies (with tickers) with this name
+    Asks for a name if it is not specified and return key to the next part
+    of conversation.
     """
 
     # context.args is list of words after command
@@ -145,7 +151,7 @@ def give_tickers(context: CallbackContext):
         res = "%s:\n*%s*" % (name, ticker)
         return res
 
-    # get information about id and name
+    # get information about chat id and name
     job_context: Optional[dict] = context.job.context
     name = job_context["name"]
     chat_id = job_context["chat_id"]
