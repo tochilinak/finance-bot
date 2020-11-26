@@ -21,7 +21,8 @@ def draw_plot(datetime_values, y_values, image_filename):
     """
     fig, ax = plt.subplots()
     ax.plot(datetime_values, y_values)
-    ax.plot_date(datetime_values, y_values)
+    if len(datetime_values) <= 30:
+        ax.plot_date(datetime_values, y_values)
     locator = AutoDateLocator()
     formatter = AutoDateFormatter(locator)
     formatter.scaled = my_scaled
