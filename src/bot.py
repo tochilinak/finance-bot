@@ -149,8 +149,15 @@ def give_tickers(context: CallbackContext):
     job_context: Optional[dict] = context.job.context
     name = job_context["name"]
     chat_id = job_context["chat_id"]
-    
+
     companies = symbol_by_name(name)
+
+    if not companies:
+        context.bot.send_message(
+            chat_id=chat_id,
+            text="I have not found a company with that name :("
+        )
+        return
 
     # "c" is "company"
     text = "\n\n".join([create_info_line(c[0], c[1]) for c in companies])
