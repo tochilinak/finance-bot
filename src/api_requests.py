@@ -94,11 +94,16 @@ def get_period_data_of_cost_moex(start, end, symbol):
 def get_period_data_of_cost_marketstack(start, end, symbol):
     query = "http://api.marketstack.com/v1/eod"
     params = {"date_from": start, "date_to": end, "access_key":
-              config.API_KEY_MARKETSTACK, "symbols": symbol}
-    r = requests.get(query, params=params).json()["data"] if "data" in\
-        requests.get(query, params=params).json().keys() else []
-    r.reverse()
-    return [[parse_date(x["date"][:10]) for x in r], [x["close"] for x in r]]
+              config.API_KEY_MARKETSTACK, "symbols": symbol, "limit": "1000"}
+    result = [[], []]
+    if "error" in requests.get(query, params=params).json().keys():
+        return result
+    r = requests.get(query, params=params).json()["data"]
+    result[0] = [parse_date(x["date"][:10]) for x in r]
+    result[1] = [x["close"] for x in r]
+    result[0].reverse()
+    result[1].reverse()
+    return result
 
 
 def get_period_data_of_cost(start, end, symbol):
