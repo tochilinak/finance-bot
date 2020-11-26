@@ -1,6 +1,15 @@
 import matplotlib.pyplot as plt
 from matplotlib.dates import AutoDateLocator, AutoDateFormatter
 
+"""
+Usage example:
+
+from api_requests import get_period_data_of_cost
+
+dates, values = get_period_data_of_cost("2015-10-01",
+                                        "2020-11-20", "GAZP")
+draw_plot(dates, values, "out")
+"""
 
 my_scaled = {
     365.0: '%Y',
