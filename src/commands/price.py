@@ -110,12 +110,11 @@ def give_custom_price(update: Update, context: CallbackContext):
     ticker = context.user_data["ticker"]
 
     dates, values = get_period_data_of_cost(start_date, end_date, ticker)
-    filename = "images/" + str(update.message.chat_id)
-    svg_filename = filename + ".svg"
+    filename = "images/graphics.png"
 
     draw_plot(dates, values, filename)
 
-    img = ""  # ?????????????????????????????
+    img = open(filename, 'rb')
 
     context.bot.send_photo(
         chat_id=update.message.chat_id,

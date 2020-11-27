@@ -8,7 +8,7 @@ from api_requests import get_period_data_of_cost
 
 dates, values = get_period_data_of_cost("2015-10-01",
                                         "2020-11-20", "GAZP")
-draw_plot(dates, values, "out")
+draw_plot(dates, values, "out.png")
 """
 
 my_scaled = {
@@ -39,4 +39,4 @@ def draw_plot(datetime_values, y_values, image_filename):
     ax.xaxis.set_major_formatter(formatter)
     fig.autofmt_xdate()
 
-    plt.savefig(image_filename + ".svg", format="svg")
+    plt.savefig(image_filename, format="png")
