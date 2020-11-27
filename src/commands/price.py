@@ -1,3 +1,9 @@
+"""
+Create handler for /price command.
+
+Command give user prices for the company's shares for the specified period
+User can enter "/price <company ticker>" or just "/price"
+"""
 from telegram import Update
 from telegram.ext import (
     CommandHandler,
@@ -12,12 +18,10 @@ from commands.bot_filters import simple_text_filter
 
 def price_start(update: Update, context: CallbackContext):
     """
-    This callback is executed by /price.
+    Srart of conversation.
 
-    Give the price of the company's shares for the specified period in the end
+    Asks for a ешслук if it is not specified and return key to the next part
     of conversation.
-
-    Return key of the next part of conversation.
     """
     # context.args is list of words after command
     if not context.args:

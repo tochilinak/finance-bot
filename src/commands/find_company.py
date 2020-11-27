@@ -25,7 +25,6 @@ def find_company(update: Update, context: CallbackContext):
     Asks for a name if it is not specified and return key to the next part
     of conversation.
     """
-
     # context.args is list of words after command
     if not context.args:
         update.message.reply_text(
