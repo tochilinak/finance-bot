@@ -16,6 +16,8 @@ from graphics import draw_plot
 from commands.basic import cancel_handler
 from commands.bot_filters import simple_text_filter
 
+PLOT_FILENAME = "images/graphics.png"
+
 
 def price_start(update: Update, context: CallbackContext):
     """
@@ -106,17 +108,35 @@ def custom(update: Update, context: CallbackContext):
 
 def give_custom_price(update: Update, context: CallbackContext):
     """Get dates from user. Draw and send plot"""
-    text = update.message.text
-    start_date, end_date = text.split(' ')
-
     ticker = context.user_data["ticker"]
 
+    text = update.message.text
+
+    try:
+        start_date, end_date = text.split(' ')
+    except ValueError:
+        update.message.reply_text(
+            "Dates entered incorrectly\n"
+            "Format: YYYY-MM-DD YYYY-MM-DD\n"
+            "Example: 2020-01-01 2020-11-01\n"
+            "Try again or /cancel"
+        )
+        return "get_custom_period"
+
     dates, values = get_period_data_of_cost(start_date, end_date, ticker)
-    filename = "images/graphics.png"
 
-    draw_plot(dates, values, filename)
+    # Draw plot in file if information exists
+    if values:
+        draw_plot(dates, values, PLOT_FILENAME)
+    else:
+        update.message.reply_text(
+            "I don't have this information\n"
+            "You may have entered the wrong ticker\n"
+            "Try again or /cancel"
+        )
+        return "ticker"
 
-    img = open(filename, 'rb')
+    img = open(PLOT_FILENAME, 'rb')
 
     context.bot.send_photo(
         chat_id=update.message.chat_id,
@@ -137,11 +157,11 @@ period_type_hanlers = [
 custom_period_handler = MessageHandler(simple_text_filter, give_custom_price)
 
 price_handler = ConversationHandler(
-            entry_points=[CommandHandler("price", price_start)],
-            states={
-                "ticker": [MessageHandler(simple_text_filter, get_ticker)],
-                "period_type": period_type_hanlers,
-                "get_custom_period": [custom_period_handler]
-            },
-            fallbacks=[cancel_handler]
-        )
+    entry_points=[CommandHandler("price", price_start)],
+    states={
+        "ticker": [MessageHandler(simple_text_filter, get_ticker)],
+        "period_type": period_type_hanlers,
+        "get_custom_period": [custom_period_handler]
+    },
+    fallbacks=[cancel_handler]
+)
