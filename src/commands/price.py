@@ -94,16 +94,18 @@ def current_price(update: Update, context: CallbackContext):
 
 
 def custom(update: Update, context: CallbackContext):
+    """Get ticker from user and ask dates for custom request."""
     ticker = context.user_data["ticker"].upper()
 
     update.message.reply_text(
-        "Enter start and end date, format 'YYYY-MM-DD'"
+        "Enter start and end date, format 'YYYY-MM-DD YYYY-MM-DD'"
     )
 
     return "get_custom_period"
 
 
 def give_custom_price(update: Update, context: CallbackContext):
+    """Get dates from user. Draw and send plot"""
     text = update.message.text
     start_date, end_date = text.split(' ')
 
