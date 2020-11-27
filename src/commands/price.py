@@ -11,7 +11,6 @@ from telegram.ext import (
     ConversationHandler,
     MessageHandler
 )
-from cairo import ImageSurface
 from api_requests import current_cost, get_period_data_of_cost
 from graphics import draw_plot
 from commands.basic import cancel_handler
@@ -113,15 +112,14 @@ def give_custom_price(update: Update, context: CallbackContext):
     dates, values = get_period_data_of_cost(start_date, end_date, ticker)
     filename = "images/" + str(update.message.chat_id)
     svg_filename = filename + ".svg"
-    png_filename = filename + ".png"
 
     draw_plot(dates, values, filename)
 
-    png = svg2png(file_obj=open(svg_filename, 'rb'))
+    img = ""  # ?????????????????????????????
 
     context.bot.send_photo(
         chat_id=update.message.chat_id,
-        photo=png
+        photo=img
     )
 
     return ConversationHandler.END
