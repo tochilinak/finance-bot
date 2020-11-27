@@ -42,7 +42,7 @@ def price_start(update: Update, context: CallbackContext):
     )
     update.message.reply_text(
         "You can get information about entering "
-        "a period with the / periods command"
+        "a period with the /periods command"
     )
     return "period_type"
 
