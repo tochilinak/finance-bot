@@ -127,3 +127,13 @@ def get_period_data_of_cost(start, end, symbol):
     result_moex = get_period_data_of_cost_moex(start, end, symbol)
     result_marketstack = get_period_data_of_cost_marketstack(start, end, symbol)
     return result_marketstack if len(result_marketstack[0]) else result_moex
+
+
+def get_currency_alphavantage(symbol):
+    query = "https://www.alphavantage.co/query"
+    params = {"function": "OVERVIEW", "symbol": symbol, "apikey":
+              config.API_KEY_ALPHAVANTAGE}
+    r = requests.get(query, params=params).json()
+    if "Currency" not in r.keys():
+        return None
+    return r["Currency"]
