@@ -11,7 +11,9 @@ from telegram.ext import (
     ConversationHandler,
     MessageHandler
 )
-from api_requests import current_cost
+from cairo import ImageSurface
+from api_requests import current_cost, get_period_data_of_cost
+from graphics import draw_plot
 from commands.basic import cancel_handler
 from commands.bot_filters import simple_text_filter
 
@@ -66,6 +68,7 @@ def periods(update: Update, context: CallbackContext):
     """Give user information about entering a period."""
     update.message.reply_text(
         "/last_update - get the most current price available\n"
+        "/custom - get prices for a specified period of time\n"
     )
     return "period_type"
 
@@ -91,17 +94,55 @@ def current_price(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
+def custom(update: Update, context: CallbackContext):
+    ticker = context.user_data["ticker"].upper()
+
+    update.message.reply_text(
+        "Enter start and end date, format 'YYYY-MM-DD'"
+    )
+
+    return "get_custom_period"
+
+
+def give_custom_price(update: Update, context: CallbackContext):
+    text = update.message.text
+    start_date, end_date = text.split(' ')
+
+    ticker = context.user_data["ticker"]
+
+    dates, values = get_period_data_of_cost(start_date, end_date, ticker)
+    filename = "images/" + str(update.message.chat_id)
+    svg_filename = filename + ".svg"
+    png_filename = filename + ".png"
+
+    draw_plot(dates, values, filename)
+
+    png = svg2png(file_obj=open(svg_filename, 'rb'))
+
+    context.bot.send_photo(
+        chat_id=update.message.chat_id,
+        photo=png
+    )
+
+    return ConversationHandler.END
+
+
 # Create handlers for different period types
 period_type_hanlers = [
     CommandHandler("last_update", current_price),
+    CommandHandler("custom", custom),
     CommandHandler("periods", periods)
 ]
+
+# Create handler for custom period
+custom_period_handler = MessageHandler(simple_text_filter, give_custom_price)
 
 price_handler = ConversationHandler(
             entry_points=[CommandHandler("price", price_start)],
             states={
                 "ticker": [MessageHandler(simple_text_filter, get_ticker)],
-                "period_type": period_type_hanlers
+                "period_type": period_type_hanlers,
+                "get_custom_period": [custom_period_handler]
             },
             fallbacks=[cancel_handler]
         )
