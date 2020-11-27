@@ -73,7 +73,13 @@ def symbol_by_name(name, result_size=5):
     """
     moex_result = moex_symbol_by_name(name)[:result_size]
     alphavantage_result = alphavantage_symbol_by_name(name)[:result_size]
-    return moex_result + alphavantage_result
+
+    def pairs_into_dict(list_of_pairs):
+        return dict([[y, x] for x, y in list_of_pairs])
+
+    found = pairs_into_dict(alphavantage_result)
+    found.update(pairs_into_dict(moex_result))
+    return [[y, x] for x, y in found.items()]
 
 
 def parse_date(date):
