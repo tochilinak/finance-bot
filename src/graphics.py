@@ -11,6 +11,7 @@ dates, values = get_period_data_of_cost("2015-10-01",
 draw_plot(dates, values, "out")
 """
 
+
 def set_small_data_labels(datetime_values, ax):
     ax.set_xticks(datetime_values)
     # check whether datetimes represent dates or time
