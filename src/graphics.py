@@ -55,6 +55,7 @@ def draw_plot(datetime_values, y_values, image_filename):
     (datetime_values[i], y_values[i])
     """
     fig, ax = plt.subplots()
+    fig.subplots_adjust(left=0.2)
     ax.plot(datetime_values, y_values)
     # add big dots if data is small
     if len(datetime_values) <= 30:
