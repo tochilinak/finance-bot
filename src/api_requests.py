@@ -101,18 +101,21 @@ def get_period_data_of_cost_moex(start, end, symbol):
     return [[parse_date(x['TRADEDATE']) for x in r], [x['CLOSE'] for x in r]]
 
 
-def get_period_data_of_cost_marketstack(start, end, symbol):
-    query = "http://api.marketstack.com/v1/eod"
-    params = {"date_from": start, "date_to": end, "access_key":
-              config.API_KEY_MARKETSTACK, "symbols": symbol, "limit": "1000"}
+def get_period_data_of_cost_alphavantage(start, end, symbol):
+    query = "https://www.alphavantage.co/query"
+    params = {"function": "TIME_SERIES_DAILY", "symbol": symbol, "apikey":
+              config.API_KEY_ALPHAVANTAGE, "outputsize": "full"}
     result = [[], []]
-    if "error" in requests.get(query, params=params).json().keys():
+    if "Error Message" in requests.get(query, params=params).json().keys():
         return result
-    r = requests.get(query, params=params).json()["data"]
-    result[0] = [parse_date(x["date"][:10]) for x in r]
-    result[1] = [x["close"] for x in r]
-    result[0].reverse()
-    result[1].reverse()
+    r = requests.get(query, params=params).json()["Time Series (Daily)"]
+    start_ordinal = parse_date(start).toordinal()
+    end_ordinal = parse_date(end).toordinal()
+    for date_ordinal in range(start_ordinal, end_ordinal + 1):
+        current_date = datetime.datetime.fromordinal(date_ordinal)
+        if current_date.isoformat()[:10] in r.keys():
+            result[0].append(current_date)
+            result[1].append(r[current_date.isoformat()[:10]]["4. close"])
     return result
 
 
@@ -125,9 +128,9 @@ def get_period_data_of_cost(start, end, symbol):
     :return: list with dates as datetime objects, list with costs as integers.
     """
     result_moex = get_period_data_of_cost_moex(start, end, symbol)
-    result_marketstack = get_period_data_of_cost_marketstack(start,
-                                                             end, symbol)
-    return result_marketstack if len(result_marketstack[0]) else result_moex
+    result_alphavantage = get_period_data_of_cost_alphavantage(start,
+                                                               end, symbol)
+    return result_alphavantage if len(result_alphavantage[0]) else result_moex
 
 
 def get_currency_alphavantage(symbol):
