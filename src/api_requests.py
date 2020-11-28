@@ -119,13 +119,14 @@ def get_period_data_of_cost_marketstack(start, end, symbol):
 def get_period_data_of_cost(start, end, symbol):
     """Make list with costs by the each day from the period.
 
-    :param start: begin of the period, type - string, format 'YYYY-MM-DD'.
-    :param end: end of the period, type - string, format 'YYYY-MM-DD'.
-    :param symbol: symbol of the company, type - string.
+    :param start: begin of the period; type - string, format 'YYYY-MM-DD'.
+    :param end: end of the period; type - string, format 'YYYY-MM-DD'.
+    :param symbol: symbol of the company; type - string.
     :return: list with dates as datetime objects, list with costs as integers.
     """
     result_moex = get_period_data_of_cost_moex(start, end, symbol)
-    result_marketstack = get_period_data_of_cost_marketstack(start, end, symbol)
+    result_marketstack = get_period_data_of_cost_marketstack(start,
+                                                             end, symbol)
     return result_marketstack if len(result_marketstack[0]) else result_moex
 
 
@@ -137,3 +138,24 @@ def get_currency_alphavantage(symbol):
     if "Currency" not in r.keys():
         return None
     return r["Currency"]
+
+
+def get_currency_moex(symbol):
+    query = "https://iss.moex.com/iss/securities/" + symbol + ".json"
+    r = requests.get(query).json()["description"]["data"]
+    if len(r) == 0:
+        return None
+    return r[7][2]
+
+
+def get_currency(symbol):
+    """Return currency of the company.
+
+    :param symbol: symbol of company.
+    :return: currency; type - string, None if not found.
+    """
+    result_alphavantage = get_currency_alphavantage(symbol)
+    result_moex = get_currency_moex(symbol)
+    if result_alphavantage is None:
+        return result_moex
+    return result_alphavantage
