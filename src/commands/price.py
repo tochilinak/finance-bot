@@ -13,17 +13,29 @@ from telegram.ext import (
 )
 from api_requests import current_cost, get_period_data_of_cost
 from graphics import draw_plot
-from commands.basic import cancel_handler
-from commands.bot_filters import simple_text_filter
+from commands.basic import cancel_handler, unknown_handler
+from commands.bot_filters import simple_text_filter, se_dates_filter
 
-PLOT_FILENAME = "images/graphics.png"
+PLOT_FILENAME = "images/plot.png"
+
+
+def ask_period(update: Update):
+    """Send some messages"""
+    update.message.reply_text(
+        "For what period are you interested in the price?"
+    )
+    update.message.reply_text(
+        "You can get information about entering "
+        "a period with the /periods command"
+    )
+    return "period"
 
 
 def price_start(update: Update, context: CallbackContext):
     """
     Srart of conversation.
 
-    Asks for a ешслук if it is not specified and return key to the next part
+    Asks for a ticker if it is not specified and return key to the next part
     of conversation.
     """
     # context.args is list of words after command
@@ -40,14 +52,7 @@ def price_start(update: Update, context: CallbackContext):
     ticker = ' '.join(context.args)
     context.user_data["ticker"] = ticker
 
-    update.message.reply_text(
-        "For what period are you interested in the price?"
-    )
-    update.message.reply_text(
-        "You can get information about entering "
-        "a period with the /periods command"
-    )
-    return "period_type"
+    return ask_period(update)
 
 
 def get_ticker(update: Update, context: CallbackContext):
@@ -55,14 +60,7 @@ def get_ticker(update: Update, context: CallbackContext):
     ticker = update.message.text
     context.user_data["ticker"] = ticker
 
-    update.message.reply_text(
-        "For what period are you interested in the price?"
-    )
-    update.message.reply_text(
-        "You can get information about entering "
-        "a period with the /periods command"
-    )
-    return "period_type"
+    return ask_period(update)
 
 
 def periods(update: Update, context: CallbackContext):
@@ -71,7 +69,7 @@ def periods(update: Update, context: CallbackContext):
         "/last_update - get the most current price available\n"
         "/custom - get prices for a specified period of time\n"
     )
-    return "period_type"
+    return "period"
 
 
 def current_price(update: Update, context: CallbackContext):
@@ -146,22 +144,24 @@ def give_custom_price(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
-# Create handlers for different period types
-period_type_hanlers = [
+# Create handler for custom period
+custom_period_handler = MessageHandler(se_dates_filter, give_custom_price)
+
+# Create handlers for different periods
+period_hanlers = [
     CommandHandler("last_update", current_price),
     CommandHandler("custom", custom),
-    CommandHandler("periods", periods)
+    CommandHandler("periods", periods),
+    custom_period_handler
 ]
 
-# Create handler for custom period
-custom_period_handler = MessageHandler(simple_text_filter, give_custom_price)
 
 price_handler = ConversationHandler(
     entry_points=[CommandHandler("price", price_start)],
     states={
         "ticker": [MessageHandler(simple_text_filter, get_ticker)],
-        "period_type": period_type_hanlers,
+        "period": period_hanlers,
         "get_custom_period": [custom_period_handler]
     },
-    fallbacks=[cancel_handler]
+    fallbacks=[cancel_handler, unknown_handler]
 )

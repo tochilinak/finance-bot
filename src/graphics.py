@@ -21,7 +21,7 @@ my_scaled = {
 
 def draw_plot(datetime_values, y_values, image_filename):
     """
-    Draw plot and save into image_filename.svg.
+    Draw plot and save into image_filename.
 
     datetime_values is a list of datetime objects,
     y_values is a list of int.

@@ -1,10 +1,12 @@
-"""Module for /cancel command."""
+"""Module for /cancel command and unknow actions."""
 from telegram import Update
 from telegram.ext import (
     CallbackContext,
     ConversationHandler,
-    CommandHandler
+    CommandHandler,
+    MessageHandler
 )
+from commands.bot_filters import command_filter
 
 
 def cancel(update: Update, context: CallbackContext):
@@ -13,5 +15,14 @@ def cancel(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
+def unknown_command(update: Update, context: CallbackContext):
+    update.message.reply_text(
+        "I don't know this command"
+    )
+
+
 # Create handler for /cancel command
 cancel_handler = CommandHandler("cancel", cancel)
+
+# Create handler for unknown commands
+unknown_handler = MessageHandler(command_filter, unknown_command)
