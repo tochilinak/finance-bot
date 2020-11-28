@@ -20,7 +20,7 @@ PLOT_FILENAME = "images/plot.png"
 
 
 def ask_period(update: Update):
-    """Send some messages"""
+    """Send some messages."""
     update.message.reply_text(
         "For what period are you interested in the price?"
     )
@@ -99,6 +99,11 @@ def custom(update: Update, context: CallbackContext):
 
     update.message.reply_text(
         "Enter start and end date, format 'YYYY-MM-DD YYYY-MM-DD'"
+    )
+
+    update.message.reply_text(
+        "You can just enter two dates after the ticker message next time "
+        "(and not use /custom)"
     )
 
     return "get_custom_period"
