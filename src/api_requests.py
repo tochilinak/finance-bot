@@ -98,7 +98,7 @@ def parse_date(date):
 
 def get_period_data_of_cost_moex(start, end, symbol):
     r = apimoex.get_board_history(requests.Session(), symbol, start, end)
-    return [[parse_date(x['TRADEDATE']) for x in r], [x['CLOSE'] for x in r]]
+    return [[parse_date(x['TRADEDATE']) for x in r], [float(x['CLOSE']) for x in r]]
 
 
 def get_period_data_of_cost_alphavantage(start, end, symbol):
@@ -115,7 +115,7 @@ def get_period_data_of_cost_alphavantage(start, end, symbol):
         current_date = datetime.datetime.fromordinal(date_ordinal)
         if current_date.isoformat()[:10] in r.keys():
             result[0].append(current_date)
-            result[1].append(r[current_date.isoformat()[:10]]["4. close"])
+            result[1].append(float(r[current_date.isoformat()[:10]]["4. close"]))
     return result
 
 
@@ -125,7 +125,7 @@ def get_period_data_of_cost(start, end, symbol):
     :param start: begin of the period; type - string, format 'YYYY-MM-DD'.
     :param end: end of the period; type - string, format 'YYYY-MM-DD'.
     :param symbol: symbol of the company; type - string.
-    :return: list with dates as datetime objects, list with costs as integers.
+    :return: list with dates as datetime objects, list with costs as floats.
     """
     result_moex = get_period_data_of_cost_moex(start, end, symbol)
     result_alphavantage = get_period_data_of_cost_alphavantage(start,
