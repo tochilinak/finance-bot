@@ -13,7 +13,7 @@ from telegram.ext import (
 )
 from api_requests import current_cost, get_period_data_of_cost
 from graphics import draw_plot
-from commands.basic import cancel_handler, unknown_command_handler
+from commands.basic import default_fallbacks
 from commands.bot_filters import simple_text_filter, se_dates_filter
 
 PLOT_FILENAME = "images/plot.png"
@@ -172,5 +172,5 @@ price_handler = ConversationHandler(
         "period": period_hanlers,
         "get_custom_period": [get_custom_period_handler]
     },
-    fallbacks=[cancel_handler, unknown_command_handler]
+    fallbacks=default_fallbacks
 )

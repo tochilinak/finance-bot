@@ -14,7 +14,7 @@ from telegram.ext import (
     MessageHandler
 )
 from api_requests import symbol_by_name
-from commands.basic import cancel_handler
+from commands.basic import default_fallbacks
 from commands.bot_filters import simple_text_filter
 
 
@@ -104,5 +104,5 @@ find_company_handler = ConversationHandler(
     states={
         "name": [MessageHandler(simple_text_filter, get_name)],
     },
-    fallbacks=[cancel_handler]
+    fallbacks=default_fallbacks
 )
