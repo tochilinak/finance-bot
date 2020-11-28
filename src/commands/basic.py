@@ -24,8 +24,17 @@ def unknown_command(update: Update, context: CallbackContext):
     )
 
 
+def unknown_text(update: Update, context: CallbackContext):
+    update.message.reply_text(
+        "I don't know this command"
+    )
+    update.message.reply_text(
+        "Or you can't use it now"
+    )
+
+
 # Create handler for /cancel command
 cancel_handler = CommandHandler("cancel", cancel)
 
 # Create handler for unknown commands
-unknown_handler = MessageHandler(command_filter, unknown_command)
+unknown_command_handler = MessageHandler(command_filter, unknown_command)

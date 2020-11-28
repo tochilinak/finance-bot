@@ -13,7 +13,7 @@ from telegram.ext import (
 )
 from api_requests import current_cost, get_period_data_of_cost
 from graphics import draw_plot
-from commands.basic import cancel_handler, unknown_handler
+from commands.basic import cancel_handler, unknown_command_handler
 from commands.bot_filters import simple_text_filter, se_dates_filter
 
 PLOT_FILENAME = "images/plot.png"
@@ -149,8 +149,12 @@ def give_custom_price(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
-# Create handler for custom period
+# Create handlers for custom period
 custom_period_handler = MessageHandler(se_dates_filter, give_custom_price)
+get_custom_period_handler = MessageHandler(
+    simple_text_filter,
+    give_custom_price
+)
 
 # Create handlers for different periods
 period_hanlers = [
@@ -166,7 +170,7 @@ price_handler = ConversationHandler(
     states={
         "ticker": [MessageHandler(simple_text_filter, get_ticker)],
         "period": period_hanlers,
-        "get_custom_period": [custom_period_handler]
+        "get_custom_period": [get_custom_period_handler]
     },
-    fallbacks=[cancel_handler, unknown_handler]
+    fallbacks=[cancel_handler, unknown_command_handler]
 )
