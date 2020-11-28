@@ -22,6 +22,14 @@ def set_small_data_labels(datetime_values, ax):
     ax.set_xticklabels(labels)
 
 
+my_scaled = {
+    365.0: '%Y',
+    30.0: '%Y-%m',
+    1: '%Y-%m-%d',
+    1 / 24: '%H:%M',
+}
+
+
 def set_big_data_labels(datetime_values, ax):
     locator = AutoDateLocator()
     formatter = AutoDateFormatter(locator)
@@ -35,14 +43,6 @@ def set_labels(datetime_values, ax):
         set_small_data_labels(datetime_values, ax)
     else:
         set_big_data_labels(datetime_values, ax)
-
-
-my_scaled = {
-    365.0: '%Y',
-    30.0: '%Y-%m',
-    1: '%Y-%m-%d',
-    1 / 24: '%H:%M',
-}
 
 
 def draw_plot(datetime_values, y_values, image_filename):
