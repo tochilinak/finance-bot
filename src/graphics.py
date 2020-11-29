@@ -8,7 +8,7 @@ from api_requests import get_period_data_of_cost
 
 dates, values = get_period_data_of_cost("2015-10-01",
                                         "2020-11-20", "GAZP")
-draw_plot(dates, values, "out")
+draw_plot(dates, values, "out.png")
 """
 
 
@@ -51,7 +51,7 @@ def set_labels(datetime_values, ax):
 
 def draw_plot(datetime_values, y_values, image_filename):
     """
-    Draw plot and save into image_filename.svg.
+    Draw plot and save into image_filename.
 
     datetime_values is a list of datetime objects,
     y_values is a list of int.
@@ -67,4 +67,4 @@ def draw_plot(datetime_values, y_values, image_filename):
     set_labels(datetime_values, ax)
     fig.autofmt_xdate()
 
-    plt.savefig(image_filename + ".svg", format="svg")
+    plt.savefig(image_filename, format="png")
