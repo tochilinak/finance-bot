@@ -31,6 +31,19 @@ def ask_period(update: Update):
     return "period"
 
 
+def information_exists(update: Update, data):
+    """Check if any information is written in the data."""
+    if data is None:
+        update.message.reply_text(
+            "I don't have this information\n"
+            "You may have entered the wrong ticker\n"
+            "Try again or /cancel"
+        )
+        return False
+
+    return True
+
+
 def price_start(update: Update, context: CallbackContext):
     """
     Srart of conversation.
@@ -80,10 +93,11 @@ def current_price(update: Update, context: CallbackContext):
 
     price = current_cost(ticker)
 
-    if price is not None:
-        message_text = ticker + " stock price is " + str(price)
-    else:
-        message_text = "I don't know this price"
+    if not information_exists(update, price):
+        #  Ask for ticker again if price was not found
+        return "ticker"
+
+    message_text = ticker + " stock price is " + str(price)
 
     context.bot.send_message(
         chat_id=update.message.chat_id,
@@ -128,16 +142,12 @@ def give_custom_price(update: Update, context: CallbackContext):
 
     dates, values = get_period_data_of_cost(start_date, end_date, ticker)
 
-    # Draw plot in file if information exists
-    if values:
-        draw_plot(dates, values, PLOT_FILENAME)
-    else:
-        update.message.reply_text(
-            "I don't have this information\n"
-            "You may have entered the wrong ticker\n"
-            "Try again or /cancel"
-        )
+    if not information_exists(update, values):
+        #  Ask for ticker again if price was not found
         return "ticker"
+
+    # Draw plot in file if information exists
+    draw_plot(dates, values, PLOT_FILENAME)
 
     img = open(PLOT_FILENAME, 'rb')
 
