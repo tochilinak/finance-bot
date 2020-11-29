@@ -27,8 +27,8 @@ def marketstack_cost(symbol):
     query = "http://api.marketstack.com/v1/tickers/" + symbol +\
             "/intraday/latest"
     params = {"access_key": config.API_KEY_MARKETSTACK}
-    r = requests.get(query, params=params).json()
-    result = r["close"] if "close" in r.keys() else None
+    resp = requests.get(query, params=params).json()
+    result = resp["close"] if "close" in resp.keys() else None
     return result
 
 
@@ -46,8 +46,8 @@ def alphavantage_symbol_by_name(name):
     query = "https://www.alphavantage.co/query"
     params = {"function": "SYMBOL_SEARCH", "keywords": name, "apikey":
               config.API_KEY_ALPHAVANTAGE}
-    r = requests.get(query, params=params).json()["bestMatches"]
-    result = [[x["2. name"], x["1. symbol"]] for x in r]
+    resp = requests.get(query, params=params).json()
+    result = [[x["2. name"], x["1. symbol"]] for x in resp["bestMatches"]]
     return result
 
 
@@ -97,33 +97,81 @@ def parse_date(date):
 
 
 def get_period_data_of_cost_moex(start, end, symbol):
-    r = apimoex.get_board_history(requests.Session(), symbol, start, end)
-    return [[parse_date(x['TRADEDATE']) for x in r], [x['CLOSE'] for x in r]]
+    resp = apimoex.get_board_history(requests.Session(), symbol, start, end)
+    return [[parse_date(x['TRADEDATE']) for x in resp], [float(x['CLOSE'])
+                                                         for x in resp]]
 
 
-def get_period_data_of_cost_marketstack(start, end, symbol):
-    query = "http://api.marketstack.com/v1/eod"
-    params = {"date_from": start, "date_to": end, "access_key":
-              config.API_KEY_MARKETSTACK, "symbols": symbol, "limit": "1000"}
+def get_period_data_of_cost_alphavantage(start, end, symbol):
+    query = "https://www.alphavantage.co/query"
+    params = {"function": "TIME_SERIES_DAILY", "symbol": symbol, "apikey":
+              config.API_KEY_ALPHAVANTAGE, "outputsize": "full"}
     result = [[], []]
-    if "error" in requests.get(query, params=params).json().keys():
+    if "Error Message" in requests.get(query, params=params).json().keys():
         return result
-    r = requests.get(query, params=params).json()["data"]
-    result[0] = [parse_date(x["date"][:10]) for x in r]
-    result[1] = [x["close"] for x in r]
-    result[0].reverse()
-    result[1].reverse()
+
+    # there are prices of stocks by each day from company history
+    # in "Time Series (Daily)" resp key.
+    resp = requests.get(query, params=params).json()["Time Series (Daily)"]
+    start_ordinal = parse_date(start).toordinal()
+    end_ordinal = parse_date(end).toordinal()
+    for date_ordinal in range(start_ordinal, end_ordinal + 1):
+        current_date = datetime.datetime.fromordinal(date_ordinal)
+        if current_date.isoformat()[:10] in resp.keys():
+            result[0].append(current_date)
+            result[1].append(float(resp[current_date.isoformat()[:10]]
+                                   ["4. close"]))
     return result
 
 
 def get_period_data_of_cost(start, end, symbol):
     """Make list with costs by the each day from the period.
 
-    :param start: begin of the period, type - string, format 'YYYY-MM-DD'.
-    :param end: end of the period, type - string, format 'YYYY-MM-DD'.
-    :param symbol: symbol of the company, type - string.
-    :return: list with dates as datetime objects, list with costs as integers.
+    :param start: begin of the period; type - string, format 'YYYY-MM-DD'.
+    :param end: end of the period; type - string, format 'YYYY-MM-DD'.
+    :param symbol: symbol of the company; type - string.
+    :return: list with dates as datetime objects, list with costs as floats.
     """
     result_moex = get_period_data_of_cost_moex(start, end, symbol)
-    result_marketstack = get_period_data_of_cost_marketstack(start, end, symbol)
-    return result_marketstack if len(result_marketstack[0]) else result_moex
+    result_alphavantage = get_period_data_of_cost_alphavantage(start,
+                                                               end, symbol)
+    return result_alphavantage if len(result_alphavantage[0]) else result_moex
+
+
+def get_currency_alphavantage(symbol):
+    query = "https://www.alphavantage.co/query"
+    params = {"function": "OVERVIEW", "symbol": symbol, "apikey":
+              config.API_KEY_ALPHAVANTAGE}
+    resp = requests.get(query, params=params).json()
+    if "Currency" not in resp.keys():
+        return None
+    return resp["Currency"]
+
+
+def get_currency_moex(symbol):
+    query = "https://iss.moex.com/iss/securities/" + symbol + ".json"
+
+    # there is a description data of company in "description" and "data"
+    # resp keys.
+    resp = requests.get(query).json()["description"]["data"]
+    for description_string in resp:
+
+        # there is an information of company's currency in such string.
+        if description_string[0] == "FACEUNIT":
+
+            # this cell contains the name of a currency.
+            return description_string[2]
+    return None
+
+
+def get_currency(symbol):
+    """Return currency of the company.
+
+    :param symbol: symbol of company.
+    :return: currency; type - string, None if not found.
+    """
+    result_alphavantage = get_currency_alphavantage(symbol)
+    result_moex = get_currency_moex(symbol)
+    if result_alphavantage is None:
+        return result_moex
+    return result_alphavantage
