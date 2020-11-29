@@ -27,8 +27,8 @@ def marketstack_cost(symbol):
     query = "http://api.marketstack.com/v1/tickers/" + symbol +\
             "/intraday/latest"
     params = {"access_key": config.API_KEY_MARKETSTACK}
-    r = requests.get(query, params=params).json()
-    result = r["close"] if "close" in r.keys() else None
+    resp = requests.get(query, params=params).json()
+    result = resp["close"] if "close" in resp.keys() else None
     return result
 
 
@@ -46,8 +46,8 @@ def alphavantage_symbol_by_name(name):
     query = "https://www.alphavantage.co/query"
     params = {"function": "SYMBOL_SEARCH", "keywords": name, "apikey":
               config.API_KEY_ALPHAVANTAGE}
-    r = requests.get(query, params=params).json()["bestMatches"]
-    result = [[x["2. name"], x["1. symbol"]] for x in r]
+    resp = requests.get(query, params=params).json()
+    result = [[x["2. name"], x["1. symbol"]] for x in resp["bestMatches"]]
     return result
 
 
@@ -97,8 +97,9 @@ def parse_date(date):
 
 
 def get_period_data_of_cost_moex(start, end, symbol):
-    r = apimoex.get_board_history(requests.Session(), symbol, start, end)
-    return [[parse_date(x['TRADEDATE']) for x in r], [float(x['CLOSE']) for x in r]]
+    resp = apimoex.get_board_history(requests.Session(), symbol, start, end)
+    return [[parse_date(x['TRADEDATE']) for x in resp], [float(x['CLOSE'])
+                                                         for x in resp]]
 
 
 def get_period_data_of_cost_alphavantage(start, end, symbol):
@@ -108,14 +109,18 @@ def get_period_data_of_cost_alphavantage(start, end, symbol):
     result = [[], []]
     if "Error Message" in requests.get(query, params=params).json().keys():
         return result
-    r = requests.get(query, params=params).json()["Time Series (Daily)"]
+
+    # there are prices of stocks by each day from company history
+    # in "Time Series (Daily)" resp key.
+    resp = requests.get(query, params=params).json()["Time Series (Daily)"]
     start_ordinal = parse_date(start).toordinal()
     end_ordinal = parse_date(end).toordinal()
     for date_ordinal in range(start_ordinal, end_ordinal + 1):
         current_date = datetime.datetime.fromordinal(date_ordinal)
-        if current_date.isoformat()[:10] in r.keys():
+        if current_date.isoformat()[:10] in resp.keys():
             result[0].append(current_date)
-            result[1].append(float(r[current_date.isoformat()[:10]]["4. close"]))
+            result[1].append(float(resp[current_date.isoformat()[:10]]
+                                   ["4. close"]))
     return result
 
 
@@ -137,18 +142,26 @@ def get_currency_alphavantage(symbol):
     query = "https://www.alphavantage.co/query"
     params = {"function": "OVERVIEW", "symbol": symbol, "apikey":
               config.API_KEY_ALPHAVANTAGE}
-    r = requests.get(query, params=params).json()
-    if "Currency" not in r.keys():
+    resp = requests.get(query, params=params).json()
+    if "Currency" not in resp.keys():
         return None
-    return r["Currency"]
+    return resp["Currency"]
 
 
 def get_currency_moex(symbol):
     query = "https://iss.moex.com/iss/securities/" + symbol + ".json"
-    r = requests.get(query).json()["description"]["data"]
-    if len(r) == 0:
-        return None
-    return r[7][2]
+
+    # there is a description data of company in "description" and "data"
+    # resp keys.
+    resp = requests.get(query).json()["description"]["data"]
+    for description_string in resp:
+
+        # there is an information of company's currency in such string.
+        if description_string[0] == "FACEUNIT":
+
+            # this cell contains the name of a currency.
+            return description_string[2]
+    return None
 
 
 def get_currency(symbol):
