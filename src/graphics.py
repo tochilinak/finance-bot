@@ -30,7 +30,7 @@ my_scaled = {
 }
 
 
-def set_big_data_labels(datetime_values, ax):
+def set_big_data_labels(ax):
     locator = AutoDateLocator()
     formatter = AutoDateFormatter(locator)
     formatter.scaled = my_scaled
@@ -38,11 +38,15 @@ def set_big_data_labels(datetime_values, ax):
     ax.xaxis.set_major_formatter(formatter)
 
 
+DAYS_IN_WEEK = 7
+DAYS_IN_MONTH = 30 # roughly
+
+
 def set_labels(datetime_values, ax):
-    if len(datetime_values) < 7:
+    if len(datetime_values) < DAYS_IN_WEEK:
         set_small_data_labels(datetime_values, ax)
     else:
-        set_big_data_labels(datetime_values, ax)
+        set_big_data_labels(ax)
 
 
 def draw_plot(datetime_values, y_values, image_filename):
@@ -58,7 +62,7 @@ def draw_plot(datetime_values, y_values, image_filename):
     fig.subplots_adjust(left=0.2)
     ax.plot(datetime_values, y_values)
     # add big dots if data is small
-    if len(datetime_values) <= 30:
+    if len(datetime_values) <= DAYS_IN_MONTH:
         ax.plot_date(datetime_values, y_values)
     set_labels(datetime_values, ax)
     fig.autofmt_xdate()
