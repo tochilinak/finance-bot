@@ -39,7 +39,7 @@ def set_big_data_labels(ax):
 
 
 DAYS_IN_WEEK = 7
-DAYS_IN_MONTH = 30 # roughly
+DAYS_IN_MONTH = 30  # roughly
 
 
 def set_labels(datetime_values, ax):
