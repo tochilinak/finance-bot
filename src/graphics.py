@@ -8,7 +8,8 @@ from api_requests import get_period_data_of_cost
 
 dates, values = get_period_data_of_cost("2015-10-01",
                                         "2020-11-20", "GAZP")
-draw_plot(dates, values, "out.png")
+draw_plot(dates, values, "out.png", currency="RUB",
+          title="Some plot")
 """
 
 
@@ -49,7 +50,8 @@ def set_labels(datetime_values, ax):
         set_big_data_labels(ax)
 
 
-def draw_plot(datetime_values, y_values, image_filename):
+def draw_plot(datetime_values, y_values, image_filename,
+              title=None, currency=None):
     """
     Draw plot and save into image_filename.
 
@@ -66,5 +68,13 @@ def draw_plot(datetime_values, y_values, image_filename):
         ax.plot_date(datetime_values, y_values)
     set_labels(datetime_values, ax)
     fig.autofmt_xdate()
+
+    ylabel = "stock price"
+    if currency is not None:
+        ylabel += f" (in {currency})"
+    ax.set_ylabel(ylabel)
+
+    if title is not None:
+        ax.set_title(title)
 
     plt.savefig(image_filename, format="png")
