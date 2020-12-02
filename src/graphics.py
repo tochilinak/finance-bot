@@ -8,7 +8,8 @@ from api_requests import get_period_data_of_cost
 
 dates, values = get_period_data_of_cost("2015-10-01",
                                         "2020-11-20", "GAZP")
-draw_plot(dates, values, "out.png")
+draw_plot(dates, values, "out.png", currency="RUB",
+          title="Some plot")
 """
 
 
