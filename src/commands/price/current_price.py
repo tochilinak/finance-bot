@@ -3,8 +3,8 @@ from telegram.ext import (
     CallbackContext,
     ConversationHandler
 )
-from api_requests import current_cost
-from commands.price.price import information_exists
+from api_requests import current_cost, get_currency
+from commands.price.base import information_exists
 
 
 def current_price(update: Update, context: CallbackContext):
@@ -19,7 +19,8 @@ def current_price(update: Update, context: CallbackContext):
         #  Ask for ticker again if price was not found
         return "ticker"
 
-    message_text = ticker + " stock price is " + str(price)
+    currency = get_currency(ticker)
+    message_text = "%s stock prise is %s %s" % (ticker, str(price), currency)
 
     context.bot.send_message(
         chat_id=update.message.chat_id,

@@ -16,8 +16,6 @@ from commands.bot_filters import simple_text_filter, se_dates_filter
 from commands.price.current_price import current_price
 from commands.price.custom_price import custom, give_custom_price
 
-PLOT_FILENAME = "images/plot.png"
-
 
 def ask_period(update: Update):
     """Send some messages."""
@@ -29,19 +27,6 @@ def ask_period(update: Update):
         "a period with the /periods command"
     )
     return "period"
-
-
-def information_exists(update: Update, data):
-    """Check if any information is written in the data."""
-    if data is None:
-        update.message.reply_text(
-            "I don't have this information\n"
-            "You may have entered the wrong ticker\n"
-            "Try again or /cancel"
-        )
-        return False
-
-    return True
 
 
 def price_start(update: Update, context: CallbackContext):
