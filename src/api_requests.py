@@ -6,6 +6,7 @@ import datetime
 
 
 def moex_cost(symbol):
+    symbol = symbol.upper()
     query = ("https://iss.moex.com/iss/engines/stock/markets/shares"
              "/boards/TQBR/securities.json?securities.columns=SECID,"
              "PREVADMITTEDQUOTE&iss.meta=off&iss.only=securities")
