@@ -5,7 +5,7 @@ from telegram.ext import (
     CallbackContext
 )
 import config
-from commands.price import price_handler
+from commands.price.price import price_handler
 from commands.find_company import find_company_handler
 
 
