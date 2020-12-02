@@ -4,7 +4,7 @@ from telegram.ext import (
     ConversationHandler
 )
 from api_requests import current_cost, get_currency
-from commands.price.base import information_exists
+from commands.price.price_base import information_exists
 
 
 def current_price(update: Update, context: CallbackContext):

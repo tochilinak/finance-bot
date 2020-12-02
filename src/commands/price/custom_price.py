@@ -5,7 +5,7 @@ from telegram.ext import (
 )
 from api_requests import get_period_data_of_cost
 from graphics import draw_plot
-from commands.price.base import information_exists, PLOT_FILENAME
+from commands.price.price_base import information_exists, PLOT_FILENAME
 
 
 def custom(update: Update, context: CallbackContext):
