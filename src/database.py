@@ -45,3 +45,8 @@ def list_users_tickers(telegram_address):
     result = [record.company_symbol for record in q]
     session.commit()
     return result
+
+
+def create_tables():
+    """Create tables that don't exist."""
+    Base.metadata.create_all(bind=engine)
