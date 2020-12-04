@@ -9,6 +9,8 @@ Base = declarative_base()
 
 
 class Users(Base):
+    """Class of database table."""
+
     __tablename__ = 'Users'
 
     id = Column(Integer, primary_key=True)
@@ -17,6 +19,14 @@ class Users(Base):
 
 
 def add_users_ticker(telegram_address, company_symbol):
+    """Add to database user's telegram id and company's\
+    symbol from his portfolio.
+
+    Database's path is src/databases/portfolio.db
+    :param telegram_address: user's telegram id.
+    :param company_symbol: symbol of company.
+    :return:
+    """
     current_user = Users(telegram_address=telegram_address,
                          company_symbol=company_symbol)
     session = sessionmaker(bind=engine)()
