@@ -23,12 +23,25 @@ def add_users_ticker(telegram_address, company_symbol):
     symbol from his portfolio.
 
     Database's path is src/databases/portfolio.db
-    :param telegram_address: user's telegram id.
-    :param company_symbol: symbol of company.
-    :return:
+    :param telegram_address: user's telegram id as integer.
+    :param company_symbol: symbol of company as string.
     """
     current_user = Users(telegram_address=telegram_address,
                          company_symbol=company_symbol)
     session = sessionmaker(bind=engine)()
     session.add(current_user)
     session.commit()
+
+
+def list_users_tickers(telegram_address):
+    """Find all tickers from user's portfolio.
+
+    :param telegram_address: user's telegram id as integer.
+    :return: list of tickers as integers.
+    """
+    session = sessionmaker(bind=engine)()
+    q = session.query(Users).filter(Users.telegram_address ==
+                                    telegram_address)
+    result = [record.company_symbol for record in q]
+    session.commit()
+    return result
