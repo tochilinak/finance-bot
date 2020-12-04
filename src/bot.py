@@ -7,7 +7,8 @@ from telegram.ext import (
 import config
 from commands.price.price import price_handler
 from commands.find_company import find_company_handler
-from commands.list_of_interesting.add_to_list import add_to_list_handler
+from commands.list_of_interesting.add import add_to_list_handler
+from commands.list_of_interesting.delete import delete_from_list_handler
 
 
 def start(update: Update, context: CallbackContext):
@@ -51,6 +52,9 @@ def main():
 
     # Add conversation handler for /add command
     dispatcher.add_handler(add_to_list_handler)
+
+    # Add conversation handler for /delete command
+    dispatcher.add_handler(delete_from_list_handler)
 
     # Start the bot
     updater.start_polling()
