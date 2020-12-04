@@ -13,9 +13,8 @@ class Users(Base):
 
     __tablename__ = 'Users'
 
-    id = Column(Integer, primary_key=True)
-    telegram_address = Column(Integer)
-    company_symbol = Column(String)
+    telegram_address = Column(Integer, primary_key=True)
+    company_symbol = Column(String, primary_key=True)
 
 
 # create tables that don't exist
@@ -33,7 +32,7 @@ def add_users_ticker(telegram_address, company_symbol):
     current_user = Users(telegram_address=telegram_address,
                          company_symbol=company_symbol)
     session = sessionmaker(bind=engine)()
-    session.add(current_user)
+    session.merge(current_user)
     session.commit()
 
 
