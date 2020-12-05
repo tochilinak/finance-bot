@@ -3,7 +3,7 @@ from telegram.ext import (
     CallbackContext,
     ConversationHandler
 )
-from api_requests import get_period_data_of_cost
+from api_requests import get_period_data_of_cost, get_currency
 from graphics import draw_plot
 from commands.price.price_base import information_exists, PLOT_FILENAME
 
@@ -26,7 +26,7 @@ def custom(update: Update, context: CallbackContext):
 
 def give_custom_price(update: Update, context: CallbackContext):
     """Get dates from user. Draw and send plot"""
-    ticker = context.user_data["ticker"]
+    ticker = context.user_data["ticker"].upper()
 
     text = update.message.text
 
@@ -48,7 +48,9 @@ def give_custom_price(update: Update, context: CallbackContext):
         return "ticker"
 
     # Draw plot in file if information exists
-    draw_plot(dates, values, PLOT_FILENAME)
+    currency = get_currency(ticker)
+    draw_plot(dates, values, PLOT_FILENAME, currency=currency,
+              title=f"{ticker} stock price from {start_date} to {end_date}")
 
     img = open(PLOT_FILENAME, 'rb')
 

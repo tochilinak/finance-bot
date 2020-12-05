@@ -20,7 +20,7 @@ def current_price(update: Update, context: CallbackContext):
         return "ticker"
 
     currency = get_currency(ticker)
-    message_text = "%s stock prise is %s %s" % (ticker, str(price), currency)
+    message_text = "%s stock price is %s %s" % (ticker, str(price), currency)
 
     context.bot.send_message(
         chat_id=update.message.chat_id,
