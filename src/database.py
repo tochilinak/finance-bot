@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 
 
-engine = create_engine("sqlite:///databases/portfolio.db")
+engine = create_engine("sqlite:///portfolio.db")
 Base = declarative_base()
 
 
@@ -48,3 +48,19 @@ def list_users_tickers(telegram_address):
     result = [record.company_symbol for record in q]
     session.commit()
     return result
+
+
+def delete_users_ticker(telegram_address, symbol):
+    """Delete a record with user and current ticker.
+
+    :param telegram_address: user's telegram id as integer.
+    :param symbol: symbol of company as string.
+    """
+    session = sessionmaker(bind=engine)()
+    q = session.query(Users).filter(Users.telegram_address ==
+                                    telegram_address,
+                                    Users.company_symbol ==
+                                    symbol).first()
+    if q is not None:
+        session.delete(q)
+    session.commit()
