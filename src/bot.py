@@ -9,6 +9,7 @@ from commands.price.price import price_handler
 from commands.find_company import find_company_handler
 from commands.list_of_interesting.add import add_to_list_handler
 from commands.list_of_interesting.delete import delete_from_list_handler
+from commands.list_of_interesting.myprices import myprices_handler
 
 
 def start(update: Update, context: CallbackContext):
@@ -55,6 +56,9 @@ def main():
 
     # Add conversation handler for /delete command
     dispatcher.add_handler(delete_from_list_handler)
+
+    # Add handler for /myprices command
+    dispatcher.add_handler(myprices_handler)
 
     # Start the bot
     updater.start_polling()
