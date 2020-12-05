@@ -26,7 +26,7 @@ def custom(update: Update, context: CallbackContext):
 
 def give_custom_price(update: Update, context: CallbackContext):
     """Get dates from user. Draw and send plot"""
-    ticker = context.user_data["ticker"]
+    ticker = context.user_data["ticker"].upper()
 
     text = update.message.text
 
