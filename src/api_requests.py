@@ -6,6 +6,7 @@ import datetime
 
 
 def moex_cost(symbol):
+    symbol = symbol.upper()
     query = ("https://iss.moex.com/iss/engines/stock/markets/shares"
              "/boards/TQBR/securities.json?securities.columns=SECID,"
              "PREVADMITTEDQUOTE&iss.meta=off&iss.only=securities")
@@ -23,12 +24,15 @@ def moex_company_list():
     return [x[0] for x in resp['securities']['data']]
 
 
-def marketstack_cost(symbol):
-    query = "http://api.marketstack.com/v1/tickers/" + symbol +\
-            "/intraday/latest"
-    params = {"access_key": config.API_KEY_MARKETSTACK}
+def alphavantage_cost(symbol):
+    query = "https://www.alphavantage.co/query"
+    params = {"function": "TIME_SERIES_INTRADAY", "symbol": symbol,
+              "interval": "1min", "apikey": config.API_KEY_ALPHAVANTAGE}
     resp = requests.get(query, params=params).json()
-    result = resp["close"] if "close" in resp.keys() else None
+    if "Error Message" in resp.keys():
+        return None
+    last_cost_update_key = list(resp["Time Series (1min)"].keys())[0]
+    result = resp["Time Series (1min)"][last_cost_update_key]["4. close"]
     return result
 
 
@@ -57,9 +61,9 @@ def current_cost(symbol):
     Returns int (price) if found.
     Returns None if not found
     """
-    marketstack_result = marketstack_cost(symbol)
-    if marketstack_result is not None:
-        return marketstack_result
+    alphavantage_result = alphavantage_cost(symbol)
+    if alphavantage_result is not None:
+        return alphavantage_result
     return moex_cost(symbol)
 
 
@@ -171,7 +175,6 @@ def get_currency(symbol):
     :return: currency; type - string, None if not found.
     """
     result_alphavantage = get_currency_alphavantage(symbol)
-    result_moex = get_currency_moex(symbol)
     if result_alphavantage is None:
-        return result_moex
+        return get_currency_moex(symbol)
     return result_alphavantage

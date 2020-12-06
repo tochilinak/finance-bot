@@ -43,6 +43,7 @@ def list_users_tickers(telegram_address):
     :return: list of tickers as integers.
     """
     session = sessionmaker(bind=engine)()
+    # SQLAlchemy Query object (contains db response)
     q = session.query(Users).filter(Users.telegram_address ==
                                     telegram_address)
     result = [record.company_symbol for record in q]
@@ -57,6 +58,7 @@ def delete_users_ticker(telegram_address, symbol):
     :param symbol: symbol of company as string.
     """
     session = sessionmaker(bind=engine)()
+    # SQLAlchemy Query object (contains db response)
     q = session.query(Users).filter(Users.telegram_address ==
                                     telegram_address,
                                     Users.company_symbol ==
