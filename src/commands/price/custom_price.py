@@ -42,7 +42,6 @@ def give_custom_price(update: Update, context: CallbackContext):
         return "get_custom_period"
 
     dates, values = get_period_data_of_cost(start_date, end_date, ticker)
-    plot_data = PlotData(dates, values)
 
     if not information_exists(update, values):
         #  Ask for ticker again if price was not found
@@ -50,8 +49,9 @@ def give_custom_price(update: Update, context: CallbackContext):
 
     # Draw plot in file if information exists
     currency = get_currency(ticker)
-    draw_plot(plot_data, PLOT_FILENAME, currency=currency,
-              title=f"{ticker} stock price from {start_date} to {end_date}")
+    title = title=f"{ticker} stock price from {start_date} to {end_date}"
+    plot_data = PlotData(dates, values, title, currency)
+    draw_plot(plot_data, PLOT_FILENAME)
 
     img = open(PLOT_FILENAME, 'rb')
 

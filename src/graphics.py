@@ -20,6 +20,8 @@ draw_plot(dates, values, "out.png", currency="RUB",
 class PlotData:
     dates: List[datetime]
     y_values: List[int]
+    title: str = None
+    currency: str = None
 
     def __post_init__(self):
         assert len(self.dates) == len(self.y_values)
@@ -62,8 +64,7 @@ def set_labels(dates, ax):
         set_big_data_labels(ax)
 
 
-def draw_cell(plot_data, image_filename,
-              fig, ax, title, currency):
+def draw_cell(plot_data, image_filename, fig, ax):
     fig.subplots_adjust(left=0.2)
     ax.plot(plot_data.dates, plot_data.y_values)
 
@@ -75,16 +76,15 @@ def draw_cell(plot_data, image_filename,
     fig.autofmt_xdate()
 
     ylabel = "stock price"
-    if currency is not None:
-        ylabel += f" (in {currency})"
+    if plot_data.currency is not None:
+        ylabel += f" (in {plot_data.currency})"
     ax.set_ylabel(ylabel)
 
-    if title is not None:
-        ax.set_title(title)
+    if plot_data.title is not None:
+        ax.set_title(plot_data.title)
 
 
-def draw_plot(plot_data, image_filename,
-              title=None, currency=None):
+def draw_plot(plot_data, image_filename):
     """
     Draw plot and save into image_filename.
 
@@ -94,6 +94,5 @@ def draw_plot(plot_data, image_filename,
     (datetime_values[i], y_values[i])
     """
     fig, ax = plt.subplots()
-    draw_cell(plot_data, image_filename,
-              fig, ax, title, currency)
+    draw_cell(plot_data, image_filename, fig, ax)
     plt.savefig(image_filename, format="png")
