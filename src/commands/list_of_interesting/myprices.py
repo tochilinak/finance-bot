@@ -4,14 +4,17 @@ from telegram.ext import (
     CallbackContext
 )
 from database import list_users_tickers
-from api_requests import current_cost
+from api_requests import current_cost, get_currency
 
 
 def info_line(ticker: str):
     """Cretate string in format "ticker: price"."""
     price = current_cost(ticker)
+    currency = get_currency(ticker)
+    if not price:
+        currency = ""
     price = str(price).replace(".", r"\.") if price else "no information"
-    return "*%s:* %s" % (ticker, price)
+    return "*%s:* %s %s" % (ticker, price, currency)
 
 
 def myprices(update: Update, context: CallbackContext):
