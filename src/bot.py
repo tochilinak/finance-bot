@@ -7,6 +7,9 @@ from telegram.ext import (
 import config
 from commands.price.price import price_handler
 from commands.find_company import find_company_handler
+from commands.list_of_interesting.add import add_to_list_handler
+from commands.list_of_interesting.delete import delete_from_list_handler
+from commands.list_of_interesting.myprices import myprices_handler
 
 
 def start(update: Update, context: CallbackContext):
@@ -28,6 +31,13 @@ def help_bot(update: Update, context: CallbackContext):
 
         "/find_company - find company by name. Use it if you want to know "
         "company ticker\n"
+        
+        "/add - add company to your list of companies of interest\n"
+        
+        "/delete - delete company from your list of companies of interest\n"
+        
+        "/myprices - get current stock price of companies"
+        " in your list of companies of interest\n"
     )
 
 
@@ -47,6 +57,15 @@ def main():
 
     # Add conversation handler for /find_company command
     dispatcher.add_handler(find_company_handler)
+
+    # Add conversation handler for /add command
+    dispatcher.add_handler(add_to_list_handler)
+
+    # Add conversation handler for /delete command
+    dispatcher.add_handler(delete_from_list_handler)
+
+    # Add handler for /myprices command
+    dispatcher.add_handler(myprices_handler)
 
     # Start the bot
     updater.start_polling()
