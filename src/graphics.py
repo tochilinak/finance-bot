@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.dates import AutoDateLocator, AutoDateFormatter
+from dataclasses import dataclass
 
 """
 Usage example:
@@ -50,22 +51,15 @@ def set_labels(datetime_values, ax):
         set_big_data_labels(ax)
 
 
-def draw_plot(datetime_values, y_values, image_filename,
-              title=None, currency=None):
-    """
-    Draw plot and save into image_filename.
-
-    datetime_values is a list of datetime objects,
-    y_values is a list of int.
-    Each node's coordinates (x, y) are:
-    (datetime_values[i], y_values[i])
-    """
-    fig, ax = plt.subplots()
+def draw_cell(datetime_values, y_values, image_filename,
+              fig, ax, title, currency):
     fig.subplots_adjust(left=0.2)
     ax.plot(datetime_values, y_values)
+
     # add big dots if data is small
     if len(datetime_values) <= DAYS_IN_MONTH:
         ax.plot_date(datetime_values, y_values)
+
     set_labels(datetime_values, ax)
     fig.autofmt_xdate()
 
@@ -77,4 +71,18 @@ def draw_plot(datetime_values, y_values, image_filename,
     if title is not None:
         ax.set_title(title)
 
+
+def draw_plot(datetime_values, y_values, image_filename,
+              title=None, currency=None):
+    """
+    Draw plot and save into image_filename.
+
+    datetime_values is a list of datetime objects,
+    y_values is a list of int.
+    Each node's coordinates (x, y) are:
+    (datetime_values[i], y_values[i])
+    """
+    fig, ax = plt.subplots()
+    draw_cell(datetime_values, y_values, image_filename,
+              fig, ax, title, currency)
     plt.savefig(image_filename, format="png")
