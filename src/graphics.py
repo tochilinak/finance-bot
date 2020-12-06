@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 from matplotlib.dates import AutoDateLocator, AutoDateFormatter
 from dataclasses import dataclass
+from datetime import datetime
+from typing import List
 
 """
 Usage example:
@@ -14,13 +16,22 @@ draw_plot(dates, values, "out.png", currency="RUB",
 """
 
 
-def set_small_data_labels(datetime_values, ax):
-    ax.set_xticks(datetime_values)
+@dataclass
+class PlotData:
+    dates: List[datetime]
+    y_values: List[int]
+
+    def __post_init__(self):
+        assert len(self.dates) == len(self.y_values)
+
+
+def set_small_data_labels(dates, ax):
+    ax.set_xticks(dates)
     # check whether datetimes represent dates or time
-    if all(x.hour == 0 and x.minute == 0 for x in datetime_values):
-        labels = [x.strftime('%Y-%m-%d') for x in datetime_values]
+    if all(x.hour == 0 and x.minute == 0 for x in dates):
+        labels = [x.strftime('%Y-%m-%d') for x in dates]
     else:
-        labels = [x.strftime('%H:%M') for x in datetime_values]
+        labels = [x.strftime('%H:%M') for x in dates]
     ax.set_xticklabels(labels)
 
 
@@ -44,23 +55,23 @@ DAYS_IN_WEEK = 7
 DAYS_IN_MONTH = 30  # roughly
 
 
-def set_labels(datetime_values, ax):
-    if len(datetime_values) < DAYS_IN_WEEK:
-        set_small_data_labels(datetime_values, ax)
+def set_labels(dates, ax):
+    if len(dates) < DAYS_IN_WEEK:
+        set_small_data_labels(dates, ax)
     else:
         set_big_data_labels(ax)
 
 
-def draw_cell(datetime_values, y_values, image_filename,
+def draw_cell(plot_data, image_filename,
               fig, ax, title, currency):
     fig.subplots_adjust(left=0.2)
-    ax.plot(datetime_values, y_values)
+    ax.plot(plot_data.dates, plot_data.y_values)
 
     # add big dots if data is small
-    if len(datetime_values) <= DAYS_IN_MONTH:
-        ax.plot_date(datetime_values, y_values)
+    if len(plot_data.dates) <= DAYS_IN_MONTH:
+        ax.plot_date(plot_data.dates, plot_data.y_values)
 
-    set_labels(datetime_values, ax)
+    set_labels(plot_data.dates, ax)
     fig.autofmt_xdate()
 
     ylabel = "stock price"
@@ -72,7 +83,7 @@ def draw_cell(datetime_values, y_values, image_filename,
         ax.set_title(title)
 
 
-def draw_plot(datetime_values, y_values, image_filename,
+def draw_plot(plot_data, image_filename,
               title=None, currency=None):
     """
     Draw plot and save into image_filename.
@@ -83,6 +94,6 @@ def draw_plot(datetime_values, y_values, image_filename,
     (datetime_values[i], y_values[i])
     """
     fig, ax = plt.subplots()
-    draw_cell(datetime_values, y_values, image_filename,
+    draw_cell(plot_data, image_filename,
               fig, ax, title, currency)
     plt.savefig(image_filename, format="png")
