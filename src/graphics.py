@@ -112,6 +112,8 @@ def draw_multiplot(plot_data_list, image_filename):
     """
     Draw several plots in one image and save into image_filename.
 
+    It is highly recommended to draw plots with similar
+    data ranges.
     :plot_data_list: list of PlotData objects
     """
     num = len(plot_data_list)
@@ -121,11 +123,15 @@ def draw_multiplot(plot_data_list, image_filename):
         return
 
     n, m = choose_size(num)
-    fig, axs = plt.subplots(n, m, figsize=(3.2 * m, 2.4 * n),
-                            sharex=False)
+    fig, axs = plt.subplots(n, m, figsize=(3.7 * m, 2.4 * n),
+                            sharex=True)
 
     for i in range(num):
         draw_cell(plot_data_list[i], axs.flat[i])
+
+    # delete extra axes
+    for i in range(num, n * m):
+        fig.delaxes(axs.flat[i])
 
     fig.autofmt_xdate()
     fig.tight_layout()
