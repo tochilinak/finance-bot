@@ -31,6 +31,13 @@ def help_bot(update: Update, context: CallbackContext):
 
         "/find_company - find company by name. Use it if you want to know "
         "company ticker\n"
+        
+        "/add - add company to your list of companies of interest\n"
+        
+        "/delete - delete company from your list of companies of interest\n"
+        
+        "/myprices - get current stock price of companies"
+        " in your list of companies of interest\n"
     )
 
 
