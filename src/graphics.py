@@ -66,8 +66,7 @@ def set_labels(dates, ax):
         set_big_data_labels(ax)
 
 
-def draw_cell(plot_data, image_filename, fig, ax):
-    fig.subplots_adjust(left=0.2)
+def draw_cell(plot_data, ax):
     ax.plot(plot_data.dates, plot_data.y_values)
 
     # add big dots if data is small
@@ -75,7 +74,6 @@ def draw_cell(plot_data, image_filename, fig, ax):
         ax.plot_date(plot_data.dates, plot_data.y_values)
 
     set_labels(plot_data.dates, ax)
-    fig.autofmt_xdate()
 
     ylabel = "stock price"
     if plot_data.currency is not None:
@@ -85,6 +83,9 @@ def draw_cell(plot_data, image_filename, fig, ax):
     if plot_data.title is not None:
         ax.set_title(plot_data.title)
 
+    for tick in ax.get_xticklabels():
+        tick.set_visible(True)
+
 
 def draw_plot(plot_data, image_filename):
     """
@@ -92,6 +93,41 @@ def draw_plot(plot_data, image_filename):
 
     :plot_data: PlotData object.
     """
-    fig, ax = plt.subplots()
-    draw_cell(plot_data, image_filename, fig, ax)
+    fig, ax = plt.subplots(num)
+    draw_cell(plot_data, ax)
+
+    fig.subplots_adjust(left=0.2)
+    fig.autofmt_xdate()
+
+    plt.savefig(image_filename, format="png")
+
+
+def choose_size(plot_num):
+    n = int(plot_num ** 0.5 + 0.5)
+    m = (plot_num + n - 1) // n
+    return n, m
+
+
+def draw_multiplot(plot_data_list, image_filename):
+    """
+    Draw several plots in one image and save into image_filename.
+
+    :plot_data_list: list of PlotData objects
+    """
+    num = len(plot_data_list)
+
+    if num == 1:
+        draw_plot(plot_data_list[0], image_filename)
+        return
+
+    n, m = choose_size(num)
+    fig, axs = plt.subplots(n, m, figsize=(3.2 * m, 2.4 * n),
+                            sharex=False)
+
+    for i in range(num):
+        draw_cell(plot_data_list[i], axs.flat[i])
+
+    fig.autofmt_xdate()
+    fig.tight_layout()
+
     plt.savefig(image_filename, format="png")
