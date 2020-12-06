@@ -6,12 +6,13 @@ from telegram.ext import (
     MessageHandler
 )
 from commands.basic import simple_text_filter, default_fallbacks
+from database import add_users_ticker
 
 
 def add(update: Update, context: CallbackContext):
     ticker = update.message.text
     chat_id = update.message.chat_id
-    # add company to db
+    add_users_ticker(chat_id, ticker)
     update.message.reply_text("Added succefully!")
     return ConversationHandler.END
 

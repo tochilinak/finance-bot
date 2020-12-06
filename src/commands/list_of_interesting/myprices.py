@@ -3,11 +3,12 @@ from telegram.ext import (
     CommandHandler,
     CallbackContext
 )
+from database import list_users_tickers
 
 
 def myprices(update: Update, context: CallbackContext):
-    text = ""
-    # fill text
+    chat_id = update.message.chat_id
+    text = list_users_tickers(chat_id)
     update.message.reply_text(text)
 
 

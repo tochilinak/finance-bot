@@ -6,12 +6,13 @@ from telegram.ext import (
     MessageHandler
 )
 from commands.basic import simple_text_filter, default_fallbacks
+from database import delete_users_ticker
 
 
 def delete(update: Update, context: CallbackContext):
     ticker = update.message.text
     chat_id = update.message.chat_id
-    # delete company from db
+    delete_users_ticker(chat_id, ticker)
     update.message.reply_text("Deleted succefully!")
     return ConversationHandler.END
 
