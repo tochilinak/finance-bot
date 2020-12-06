@@ -11,9 +11,13 @@ def info_line(ticker: str):
     """Cretate string in format "ticker: price"."""
     price = current_cost(ticker)
     currency = get_currency(ticker)
-    if not price:
+
+    if not price or not currency:
+        price = "no information"
         currency = ""
-    price = str(price).replace(".", r"\.") if price else "no information"
+    else:
+        price = str(price).replace(".", r"\.")
+
     return "*%s:* %s %s" % (ticker, price, currency)
 
 
@@ -21,7 +25,12 @@ def myprices(update: Update, context: CallbackContext):
     """Action for /myprices command."""
     chat_id = update.message.chat_id
     tickers = list_users_tickers(chat_id)
-    text = "\n".join([info_line(ticker) for ticker in tickers])
+
+    if tickers:
+        text = "\n".join([info_line(ticker) for ticker in tickers])
+    else:
+        text = "Your list of companies of interest is empty"
+
     context.bot.send_message(
         text=text,
         chat_id=chat_id,
