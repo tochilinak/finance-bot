@@ -108,6 +108,12 @@ def choose_size(plot_num):
     return n, m
 
 
+def axes_by_index(idx, n, m, axs):
+    i = n - idx // m - 1
+    j = idx % m
+    return axs[i][j]
+
+
 def draw_multiplot(plot_data_list, image_filename):
     """
     Draw several plots in one image and save into image_filename.
@@ -127,11 +133,11 @@ def draw_multiplot(plot_data_list, image_filename):
                             sharex=True)
 
     for i in range(num):
-        draw_cell(plot_data_list[i], axs.flat[i])
+        draw_cell(plot_data_list[i], axes_by_index(i, n, m, axs))
 
     # delete extra axes
     for i in range(num, n * m):
-        fig.delaxes(axs.flat[i])
+        fig.delaxes(axes_by_index(i, n, m, axs))
 
     fig.autofmt_xdate()
     fig.tight_layout()
