@@ -10,6 +10,7 @@ from database import delete_users_ticker
 
 
 def delete(update: Update, context: CallbackContext):
+    """Delete ticker from messege from user's list and finish conversation."""
     ticker = update.message.text
     chat_id = update.message.chat_id
     delete_users_ticker(chat_id, ticker)
@@ -18,6 +19,12 @@ def delete(update: Update, context: CallbackContext):
 
 
 def delete_start(update: Update, context: CallbackContext):
+    """
+    Start of conversation.
+
+    If text after "/delete" exists delete this ticker from list if interesting
+    Else ask for ticker
+    """
     # context.args is list of words after command
     if not context.args:
         update.message.reply_text(
@@ -29,6 +36,7 @@ def delete_start(update: Update, context: CallbackContext):
         )
         return "ticker"
 
+    # delete "/delete" from message text
     ticker = ' '.join(context.args)
     update.message.text = ticker
     return delete(update, context)

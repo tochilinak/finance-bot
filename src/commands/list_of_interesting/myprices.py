@@ -8,12 +8,14 @@ from api_requests import current_cost
 
 
 def info_line(ticker: str):
-    price = str(current_cost(ticker))
-    price = price.replace(".", r"\.")
+    """Cretate string in format "ticker: price"."""
+    price = current_cost(ticker)
+    price = str(price).replace(".", r"\.") if price else "no information"
     return "*%s:* %s" % (ticker, price)
 
 
 def myprices(update: Update, context: CallbackContext):
+    """Action for /myprices command."""
     chat_id = update.message.chat_id
     tickers = list_users_tickers(chat_id)
     text = "\n".join([info_line(ticker) for ticker in tickers])
