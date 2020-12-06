@@ -11,13 +11,15 @@ from api_requests import get_period_data_of_cost
 
 dates, values = get_period_data_of_cost("2015-10-01",
                                         "2020-11-20", "GAZP")
-draw_plot(dates, values, "out.png", currency="RUB",
-          title="Some plot")
+plot_data = PlotData(dates, values, title="GAZP Plot", currency="RUB")
+draw_plot(plot_data, "out.png")
 """
 
 
 @dataclass
 class PlotData:
+    """Class for storing data needed to draw plot."""
+
     dates: List[datetime]
     y_values: List[int]
     title: str = None
@@ -88,10 +90,7 @@ def draw_plot(plot_data, image_filename):
     """
     Draw plot and save into image_filename.
 
-    datetime_values is a list of datetime objects,
-    y_values is a list of int.
-    Each node's coordinates (x, y) are:
-    (datetime_values[i], y_values[i])
+    :plot_data: PlotData object.
     """
     fig, ax = plt.subplots()
     draw_cell(plot_data, image_filename, fig, ax)

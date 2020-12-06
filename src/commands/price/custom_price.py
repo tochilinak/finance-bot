@@ -49,7 +49,7 @@ def give_custom_price(update: Update, context: CallbackContext):
 
     # Draw plot in file if information exists
     currency = get_currency(ticker)
-    title = title=f"{ticker} stock price from {start_date} to {end_date}"
+    title = f"{ticker} stock price from {start_date} to {end_date}"
     plot_data = PlotData(dates, values, title, currency)
     draw_plot(plot_data, PLOT_FILENAME)
 
