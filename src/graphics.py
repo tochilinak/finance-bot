@@ -83,9 +83,6 @@ def draw_cell(plot_data, ax):
     if plot_data.title is not None:
         ax.set_title(plot_data.title)
 
-    for tick in ax.get_xticklabels():
-        tick.set_visible(True)
-
 
 def draw_plot(plot_data, image_filename):
     """
@@ -103,15 +100,19 @@ def draw_plot(plot_data, image_filename):
 
 
 def choose_size(plot_num):
-    n = int(plot_num ** 0.5 + 0.5)
-    m = (plot_num + n - 1) // n
-    return n, m
+    height = int(plot_num ** 0.5)
+    width = (plot_num + height - 1) // height
+    return height, width
 
 
-def axes_by_index(idx, n, m, axs):
-    i = n - idx // m - 1
-    j = idx % m
-    return axs[i][j]
+def axes_by_index(idx, height, width, axes):
+    i = height - idx // width - 1
+    j = idx % width
+
+    if height == 1:
+        return axes[j]
+
+    return axes[i][j]
 
 
 def draw_multiplot(plot_data_list, image_filename):
@@ -122,22 +123,23 @@ def draw_multiplot(plot_data_list, image_filename):
     data ranges.
     :plot_data_list: list of PlotData objects
     """
-    num = len(plot_data_list)
+    plot_num = len(plot_data_list)
 
-    if num == 1:
+    if plot_num == 1:
         draw_plot(plot_data_list[0], image_filename)
         return
 
-    n, m = choose_size(num)
-    fig, axs = plt.subplots(n, m, figsize=(3.7 * m, 2.4 * n),
-                            sharex=True)
+    height, width = choose_size(plot_num)
+    fig, axes = plt.subplots(height, width,
+                             figsize=(3.7 * width, 2.4 * height),
+                             sharex=True)
 
-    for i in range(num):
-        draw_cell(plot_data_list[i], axes_by_index(i, n, m, axs))
+    for i in range(plot_num):
+        draw_cell(plot_data_list[i], axes_by_index(i, height, width, axes))
 
     # delete extra axes
-    for i in range(num, n * m):
-        fig.delaxes(axes_by_index(i, n, m, axs))
+    for i in range(plot_num, height * width):
+        fig.delaxes(axes_by_index(i, height, width, axes))
 
     fig.autofmt_xdate()
     fig.tight_layout()
