@@ -90,7 +90,7 @@ def draw_plot(plot_data, image_filename):
 
     :plot_data: PlotData object.
     """
-    fig, ax = plt.subplots(num)
+    fig, ax = plt.subplots()
     draw_cell(plot_data, ax)
 
     fig.subplots_adjust(left=0.2)
