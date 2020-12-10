@@ -130,13 +130,16 @@ def draw_multiplot(plot_data_list, image_filename, title=None):
         draw_plot(plot_data_list[0], image_filename)
         return
 
+    # set subplot title font size
+    plt.rc('axes', titlesize=10)
+
     height, width = choose_size(plot_num)
     fig, axes = plt.subplots(height, width,
                              figsize=(3.7 * width, 2.4 * height),
                              sharex=True)
 
     if title is not None:
-        fig.suptitle(title, fontsize=16)
+        fig.suptitle(title)
 
     for i in range(plot_num):
         draw_cell(plot_data_list[i], axes_by_index(i, height, width, axes))
