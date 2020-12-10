@@ -3,14 +3,14 @@ from telegram.ext import (
     CallbackContext,
     ConversationHandler
 )
+from re import fullmatch
 from api_requests import get_period_data_of_cost, get_currency
-from graphics import draw_plot, PlotData
-from commands.price.price_base import information_exists, PLOT_FILENAME
+from graphics import draw_multiplot, PlotData
+from commands.price.price_base import PLOT_FILENAME
 
 
 def custom(update: Update, context: CallbackContext):
-    """Get ticker from user and ask dates for custom request."""
-    ticker = context.user_data["ticker"].upper()
+    """Ask dates for custom request."""
 
     update.message.reply_text(
         "Enter start and end date, format 'YYYY-MM-DD YYYY-MM-DD'"
@@ -26,13 +26,12 @@ def custom(update: Update, context: CallbackContext):
 
 def give_custom_price(update: Update, context: CallbackContext):
     """Get dates from user. Draw and send plot"""
-    ticker = context.user_data["ticker"].upper()
 
     text = update.message.text
 
-    try:
+    if fullmatch(r'^\d{4}-\d{2}-\d{2} \d{4}-\d{2}-\d{2}$', text):
         start_date, end_date = text.split(' ')
-    except ValueError:
+    else:
         update.message.reply_text(
             "Dates entered incorrectly\n"
             "Format: YYYY-MM-DD YYYY-MM-DD\n"
@@ -41,23 +40,31 @@ def give_custom_price(update: Update, context: CallbackContext):
         )
         return "get_custom_period"
 
-    dates, values = get_period_data_of_cost(start_date, end_date, ticker)
+    tickers = context.user_data["tickers"]
+    list_plot_data = []
+    for ticker in tickers:
+        ticker = ticker.upper()
+        dates, values = get_period_data_of_cost(start_date, end_date, ticker)
 
-    if not information_exists(update, values):
-        #  Ask for ticker again if price was not found
-        return "ticker"
+        if not values:
+            update.message.reply_text(
+                f"I have not information about {ticker}"
+            )
+        else:
+            currency = get_currency(ticker)
+            title = f"{ticker} stock price"
+            plot_data = PlotData(dates, values, title, currency)
+            list_plot_data.append(plot_data)
 
     # Draw plot in file if information exists
-    currency = get_currency(ticker)
-    title = f"{ticker} stock price from {start_date} to {end_date}"
-    plot_data = PlotData(dates, values, title, currency)
-    draw_plot(plot_data, PLOT_FILENAME)
+    if list_plot_data:
+        draw_multiplot(list_plot_data, PLOT_FILENAME)
 
-    img = open(PLOT_FILENAME, 'rb')
+        img = open(PLOT_FILENAME, 'rb')
 
-    context.bot.send_photo(
-        chat_id=update.message.chat_id,
-        photo=img
-    )
+        context.bot.send_photo(
+            chat_id=update.message.chat_id,
+            photo=img
+        )
 
     return ConversationHandler.END
