@@ -115,13 +115,14 @@ def axes_by_index(idx, height, width, axes):
     return axes[i][j]
 
 
-def draw_multiplot(plot_data_list, image_filename):
+def draw_multiplot(plot_data_list, image_filename, title=None):
     """
     Draw several plots in one image and save into image_filename.
 
     It is highly recommended to draw plots with similar
     data ranges.
     :plot_data_list: list of PlotData objects
+    :title: general title
     """
     plot_num = len(plot_data_list)
 
@@ -133,6 +134,9 @@ def draw_multiplot(plot_data_list, image_filename):
     fig, axes = plt.subplots(height, width,
                              figsize=(3.7 * width, 2.4 * height),
                              sharex=True)
+
+    if title is not None:
+        fig.suptitle(title, fontsize=16)
 
     for i in range(plot_num):
         draw_cell(plot_data_list[i], axes_by_index(i, height, width, axes))
