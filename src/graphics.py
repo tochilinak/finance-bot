@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 from matplotlib.dates import AutoDateLocator, AutoDateFormatter
+from dataclasses import dataclass
+from datetime import datetime
+from typing import List
 
 """
 Usage example:
@@ -8,18 +11,34 @@ from api_requests import get_period_data_of_cost
 
 dates, values = get_period_data_of_cost("2015-10-01",
                                         "2020-11-20", "GAZP")
-draw_plot(dates, values, "out.png", currency="RUB",
-          title="Some plot")
+plot_data = PlotData(dates, values, title="GAZP Plot", currency="RUB",
+                     title_fontsize=12)
+draw_plot(plot_data, "out.png")
+draw_multiplot([plot_data, plot_data1], "out.png")
 """
 
 
-def set_small_data_labels(datetime_values, ax):
-    ax.set_xticks(datetime_values)
+@dataclass
+class PlotData:
+    """Class for storing data needed to draw plot."""
+
+    dates: List[datetime]
+    y_values: List[int]
+    title: str = None
+    currency: str = None
+    title_fontsize: int = 12
+
+    def __post_init__(self):
+        assert len(self.dates) == len(self.y_values)
+
+
+def set_small_data_labels(dates, ax):
+    ax.set_xticks(dates)
     # check whether datetimes represent dates or time
-    if all(x.hour == 0 and x.minute == 0 for x in datetime_values):
-        labels = [x.strftime('%Y-%m-%d') for x in datetime_values]
+    if all(x.hour == 0 and x.minute == 0 for x in dates):
+        labels = [x.strftime('%Y-%m-%d') for x in dates]
     else:
-        labels = [x.strftime('%H:%M') for x in datetime_values]
+        labels = [x.strftime('%H:%M') for x in dates]
     ax.set_xticklabels(labels)
 
 
@@ -43,38 +62,93 @@ DAYS_IN_WEEK = 7
 DAYS_IN_MONTH = 30  # roughly
 
 
-def set_labels(datetime_values, ax):
-    if len(datetime_values) < DAYS_IN_WEEK:
-        set_small_data_labels(datetime_values, ax)
+def set_labels(dates, ax):
+    if len(dates) < DAYS_IN_WEEK:
+        set_small_data_labels(dates, ax)
     else:
         set_big_data_labels(ax)
 
 
-def draw_plot(datetime_values, y_values, image_filename,
-              title=None, currency=None):
+def draw_cell(plot_data, ax):
+    ax.plot(plot_data.dates, plot_data.y_values)
+
+    # add big dots if data is small
+    if len(plot_data.dates) <= DAYS_IN_MONTH:
+        ax.plot_date(plot_data.dates, plot_data.y_values)
+
+    set_labels(plot_data.dates, ax)
+
+    ylabel = "stock price"
+    if plot_data.currency is not None:
+        ylabel += f" (in {plot_data.currency})"
+    ax.set_ylabel(ylabel)
+
+    if plot_data.title is not None:
+        ax.set_title(plot_data.title, size=plot_data.title_fontsize)
+
+
+def draw_plot(plot_data, image_filename):
     """
     Draw plot and save into image_filename.
 
-    datetime_values is a list of datetime objects,
-    y_values is a list of int.
-    Each node's coordinates (x, y) are:
-    (datetime_values[i], y_values[i])
+    :plot_data: PlotData object.
     """
     fig, ax = plt.subplots()
+    draw_cell(plot_data, ax)
+
     fig.subplots_adjust(left=0.2)
-    ax.plot(datetime_values, y_values)
-    # add big dots if data is small
-    if len(datetime_values) <= DAYS_IN_MONTH:
-        ax.plot_date(datetime_values, y_values)
-    set_labels(datetime_values, ax)
     fig.autofmt_xdate()
 
-    ylabel = "stock price"
-    if currency is not None:
-        ylabel += f" (in {currency})"
-    ax.set_ylabel(ylabel)
+    plt.savefig(image_filename, format="png")
+
+
+def choose_size(plot_num):
+    height = int(plot_num ** 0.5)
+    width = (plot_num + height - 1) // height
+    return height, width
+
+
+def axes_by_index(idx, height, width, axes):
+    i = height - idx // width - 1
+    j = idx % width
+
+    if height == 1:
+        return axes[j]
+
+    return axes[i][j]
+
+
+def draw_multiplot(plot_data_list, image_filename, title=None):
+    """
+    Draw several plots in one image and save into image_filename.
+
+    It is highly recommended to draw plots with similar
+    data ranges.
+    :plot_data_list: list of PlotData objects
+    :title: general title
+    """
+    plot_num = len(plot_data_list)
+
+    if plot_num == 1:
+        draw_plot(plot_data_list[0], image_filename)
+        return
+
+    height, width = choose_size(plot_num)
+    fig, axes = plt.subplots(height, width,
+                             figsize=(3.7 * width, 2.4 * height),
+                             sharex=True)
 
     if title is not None:
-        ax.set_title(title)
+        fig.suptitle(title)
+
+    for i in range(plot_num):
+        draw_cell(plot_data_list[i], axes_by_index(i, height, width, axes))
+
+    # delete extra axes
+    for i in range(plot_num, height * width):
+        fig.delaxes(axes_by_index(i, height, width, axes))
+
+    fig.autofmt_xdate()
+    fig.tight_layout()
 
     plt.savefig(image_filename, format="png")
