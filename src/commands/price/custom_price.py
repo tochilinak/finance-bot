@@ -58,7 +58,10 @@ def give_custom_price(update: Update, context: CallbackContext):
 
     # Draw plot in file if information exists
     if list_plot_data:
-        draw_multiplot(list_plot_data, PLOT_FILENAME)
+        draw_multiplot(list_plot_data,
+                       PLOT_FILENAME,
+                       title=f"Prices from {start_date} to {end_date}"
+                       )
 
         img = open(PLOT_FILENAME, 'rb')
 
