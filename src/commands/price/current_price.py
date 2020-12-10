@@ -1,30 +1,39 @@
-from telegram import Update
+from telegram import Update, ParseMode
 from telegram.ext import (
     CallbackContext,
     ConversationHandler
 )
 from api_requests import current_cost, get_currency
-from commands.price.price_base import information_exists
+
+
+def info_line(ticker: str):
+    """Cretate string in format "ticker: price"."""
+    ticker = ticker.upper()
+    price = current_cost(ticker)
+    currency = get_currency(ticker)
+
+    if not price or not currency:
+        price = "no information"
+        currency = ""
+    else:
+        price = str(price).replace(".", r"\.")
+
+    return "*%s:* %s %s" % (ticker, price, currency)
 
 
 def current_price(update: Update, context: CallbackContext):
     """Send the company current price to the chat with specified chat id."""
-    ticker = context.user_data["ticker"]
+    tickers = context.user_data["tickers"]
 
-    ticker = ticker.upper()
-
-    price = current_cost(ticker)
-
-    if not information_exists(update, price):
-        #  Ask for ticker again if price was not found
-        return "ticker"
-
-    currency = get_currency(ticker)
-    message_text = "%s stock price is %s %s" % (ticker, str(price), currency)
+    if tickers:
+        text = "\n".join([info_line(ticker) for ticker in tickers])
+    else:
+        text = "Your list of companies of interest is empty"
 
     context.bot.send_message(
+        text=text,
         chat_id=update.message.chat_id,
-        text=message_text
+        parse_mode=ParseMode.MARKDOWN_V2
     )
 
     return ConversationHandler.END
