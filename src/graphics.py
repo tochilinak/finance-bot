@@ -11,8 +11,10 @@ from api_requests import get_period_data_of_cost
 
 dates, values = get_period_data_of_cost("2015-10-01",
                                         "2020-11-20", "GAZP")
-plot_data = PlotData(dates, values, title="GAZP Plot", currency="RUB")
+plot_data = PlotData(dates, values, title="GAZP Plot", currency="RUB",
+                     title_fontsize=12)
 draw_plot(plot_data, "out.png")
+draw_multiplot([plot_data, plot_data1], "out.png")
 """
 
 
@@ -24,6 +26,7 @@ class PlotData:
     y_values: List[int]
     title: str = None
     currency: str = None
+    title_fontsize: int = 12
 
     def __post_init__(self):
         assert len(self.dates) == len(self.y_values)
@@ -81,7 +84,7 @@ def draw_cell(plot_data, ax):
     ax.set_ylabel(ylabel)
 
     if plot_data.title is not None:
-        ax.set_title(plot_data.title)
+        ax.set_title(plot_data.title, size=plot_data.title_fontsize)
 
 
 def draw_plot(plot_data, image_filename):
@@ -115,13 +118,14 @@ def axes_by_index(idx, height, width, axes):
     return axes[i][j]
 
 
-def draw_multiplot(plot_data_list, image_filename):
+def draw_multiplot(plot_data_list, image_filename, title=None):
     """
     Draw several plots in one image and save into image_filename.
 
     It is highly recommended to draw plots with similar
     data ranges.
     :plot_data_list: list of PlotData objects
+    :title: general title
     """
     plot_num = len(plot_data_list)
 
@@ -133,6 +137,9 @@ def draw_multiplot(plot_data_list, image_filename):
     fig, axes = plt.subplots(height, width,
                              figsize=(3.7 * width, 2.4 * height),
                              sharex=True)
+
+    if title is not None:
+        fig.suptitle(title)
 
     for i in range(plot_num):
         draw_cell(plot_data_list[i], axes_by_index(i, height, width, axes))
