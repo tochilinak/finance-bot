@@ -22,7 +22,7 @@ def info_line(ticker: str):
 
 
 def current_price(update: Update, context: CallbackContext):
-    """Send the company current price to the chat with specified chat id."""
+    """Send the companies current prices to the chat with specified chat id."""
     tickers = context.user_data["tickers"]
 
     if tickers:
