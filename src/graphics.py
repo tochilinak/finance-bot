@@ -13,6 +13,7 @@ dates, values = get_period_data_of_cost("2015-10-01",
                                         "2020-11-20", "GAZP")
 plot_data = PlotData(dates, values, title="GAZP Plot", currency="RUB")
 draw_plot(plot_data, "out.png")
+draw_multiplot([plot_data, plot_data1], "out.png")
 """
 
 
