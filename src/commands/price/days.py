@@ -30,6 +30,8 @@ def give_days_price(update: Update, context: CallbackContext):
 
     if fullmatch(some_days, text):
         numebr_of_days = text.split(' ')[0]
+    elif fullmatch(r'^\d+$', text):
+        numebr_of_days = text
     else:
         update.message.reply_text(
             "Enter number of days\n"
