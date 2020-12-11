@@ -106,7 +106,12 @@ period_hanlers = [
     # ask user for 2 dates after /custom command
     CommandHandler("custom", custom),
     # give user price in specified period
-    custom_period_handler
+    custom_period_handler,
+
+    # ask user for number of days after /days command
+    CommandHandler("days", days),
+    # give user price in last n days
+    days_handler
 ]
 
 price_handler = ConversationHandler(
@@ -114,7 +119,8 @@ price_handler = ConversationHandler(
     states={
         "ticker": [MessageHandler(simple_text_filter, get_ticker)],
         "period": period_hanlers,
-        "get_custom_period": [get_custom_period_handler]
+        "get_custom_period": [get_custom_period_handler],
+        "get_number_of_days": [get_days_handler]
     },
     fallbacks=default_fallbacks
 )
