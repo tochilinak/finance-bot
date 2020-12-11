@@ -71,8 +71,9 @@ def price_start(update: Update, context: CallbackContext):
 def periods(update: Update, context: CallbackContext):
     """Give user information about entering a period."""
     update.message.reply_text(
-        "/last_update - get the most current price available\n"
+        "/last_update - get the most current prices available\n"
         "/custom - get prices for a specified period of time\n"
+        "/days - get price for last n days\n"
     )
     return "period"
 
