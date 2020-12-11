@@ -42,6 +42,5 @@ def give_days_price(update: Update, context: CallbackContext):
     today = datetime.now().date()
     start_date = today - timedelta(days=int(numebr_of_days))
     update.message.text = " ".join([str(start_date), str(today)])
-    print(update.message.text)
 
     return give_custom_price(update, context)
