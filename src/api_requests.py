@@ -7,13 +7,14 @@ import datetime
 
 def moex_cost(symbol):
     symbol = symbol.upper()
-    query = ("https://iss.moex.com/iss/engines/stock/markets/shares"
-             "/boards/TQBR/securities.json?securities.columns=SECID,"
-             "PREVADMITTEDQUOTE&iss.meta=off&iss.only=securities")
+    query = ("https://iss.moex.com/iss/engines/stock/markets/shares/"
+             "securities/GAZP/candles?interval=1&iss.reverse=true")
     resp = requests.get(query).json()
-    result = next((x[1] for x in resp['securities']['data']
-                  if x[0] == symbol), None)
-    return result
+    price_col = resp["columns"]["close"]
+    date_col = resp["columns"]["end"]
+    price = resp["data"][0][price_col]
+    date = resp["data"][0][date_col]
+    return price, date
 
 
 def moex_company_list():
@@ -33,7 +34,7 @@ def alphavantage_cost(symbol):
         return None
     last_cost_update_key = list(resp["Time Series (1min)"].keys())[0]
     result = resp["Time Series (1min)"][last_cost_update_key]["4. close"]
-    return result
+    return result, last_cost_update_key
 
 
 def moex_symbol_by_name(name):
@@ -58,7 +59,7 @@ def alphavantage_symbol_by_name(name):
 def current_cost(symbol):
     """Find stock price by symbol.
 
-    Returns int (price) if found.
+    Returns int (price), string (date) if found. 
     Returns None if not found
     """
     alphavantage_result = alphavantage_cost(symbol)
