@@ -24,7 +24,7 @@ def days(update: Update, context: CallbackContext):
 
 
 def give_days_price(update: Update, context: CallbackContext):
-    """Get dates from user. Draw and send plot"""
+    """Get number of days from user. Draw and send plot"""
 
     text = update.message.text
 
