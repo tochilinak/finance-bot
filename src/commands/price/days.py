@@ -32,13 +32,14 @@ def give_days_price(update: Update, context: CallbackContext):
         numebr_of_days = text.split(' ')[0]
     else:
         update.message.reply_text(
-            "Enter number of days"
+            "Enter number of days\n"
             "Try again or /cancel"
         )
-        return "get_custom_period"
+        return "get_number_of_days"
 
-    today = datetime.now()
+    today = datetime.now().date()
     start_date = today - timedelta(days=int(numebr_of_days))
     update.message.text = " ".join([str(start_date), str(today)])
+    print(update.message.text)
 
     return give_custom_price(update, context)
