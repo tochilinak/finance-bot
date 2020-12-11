@@ -4,6 +4,7 @@ from telegram.ext import (
     ConversationHandler
 )
 from re import fullmatch
+from commands.bot_filters import se_dates
 from api_requests import get_period_data_of_cost, get_currency
 from graphics import draw_multiplot, PlotData
 from commands.price.price_base import PLOT_FILENAME
@@ -29,7 +30,7 @@ def give_custom_price(update: Update, context: CallbackContext):
 
     text = update.message.text
 
-    if fullmatch(r'^\d{4}-\d{2}-\d{2} \d{4}-\d{2}-\d{2}$', text):
+    if fullmatch(se_dates, text):
         start_date, end_date = text.split(' ')
     else:
         update.message.reply_text(
