@@ -13,9 +13,13 @@ from telegram.ext import (
 )
 from database import list_users_tickers as tickers_list
 from commands.basic import default_fallbacks
-from commands.bot_filters import simple_text_filter, se_dates_filter
+from commands.bot_filters import (simple_text_filter,
+                                  se_dates_filter,
+                                  some_days_filter
+                                  )
 from commands.price.current_price import current_price
 from commands.price.custom_price import custom, give_custom_price
+from commands.price.days import days, give_days_price
 
 
 def ask_period(update: Update):
@@ -82,6 +86,15 @@ get_custom_period_handler = MessageHandler(
     give_custom_price
 )
 
+# Create handlers for periods in format 'n days'
+# This reacts on message in format 'n days' after message with ticker
+days_handler = MessageHandler(some_days_filter, give_days_price)
+# This reacts on text message after command /days
+get_days_handler = MessageHandler(
+    simple_text_filter,
+    give_days_price
+)
+
 # Create handlers for different periods
 period_hanlers = [
     # give user information about perid entering after /periods command
@@ -95,7 +108,6 @@ period_hanlers = [
     # give user price in specified period
     custom_period_handler
 ]
-
 
 price_handler = ConversationHandler(
     entry_points=[CommandHandler("price", price_start)],
