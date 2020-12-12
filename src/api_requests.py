@@ -12,6 +12,11 @@ def moex_cost(symbol):
     resp = requests.get(query).json()["candles"]
     price_col = resp["columns"].index("close")
     date_col = resp["columns"].index("end")
+
+    # not found
+    if len(resp["data"]) == 0:
+        return None
+
     price = resp["data"][0][price_col]
     date = resp["data"][0][date_col]
     return price, date
@@ -59,13 +64,13 @@ def alphavantage_symbol_by_name(name):
 def current_cost(symbol):
     """Find stock price by symbol.
 
-    Returns int (price), string (date) if found. 
+    Returns int (price), string (date) if found.
     Returns None if not found
     """
-    alphavantage_result = alphavantage_cost(symbol)
-    if alphavantage_result is not None:
-        return alphavantage_result
-    return moex_cost(symbol)
+    moex_result = moex_cost(symbol)
+    if moex_result is not None:
+        return moex_result
+    return alphavantage_cost(symbol)
 
 
 def symbol_by_name(name, result_size=5):
@@ -140,7 +145,7 @@ def get_period_data_of_cost(start, end, symbol):
     result_moex = get_period_data_of_cost_moex(start, end, symbol)
     result_alphavantage = get_period_data_of_cost_alphavantage(start,
                                                                end, symbol)
-    return result_alphavantage if len(result_alphavantage[0]) else result_moex
+    return result_moex if len(result_moex[0]) else result_alphavantage
 
 
 def get_currency_alphavantage(symbol):
@@ -156,16 +161,15 @@ def get_currency_alphavantage(symbol):
 def get_currency_moex(symbol):
     query = "https://iss.moex.com/iss/securities/" + symbol + ".json"
 
-    # there is a description data of company in "description" and "data"
-    # resp keys.
-    resp = requests.get(query).json()["description"]["data"]
-    for description_string in resp:
+    resp = requests.get(query).json()["boards"]
+    col = resp["columns"].index("currencyid")
+    for description_string in resp["data"]:
 
         # there is an information of company's currency in such string.
-        if description_string[0] == "FACEUNIT":
+        if description_string[1] == "TQBR":
 
             # this cell contains the name of a currency.
-            return description_string[2]
+            return description_string[col]
     return None
 
 
@@ -175,7 +179,7 @@ def get_currency(symbol):
     :param symbol: symbol of company.
     :return: currency; type - string, None if not found.
     """
-    result_alphavantage = get_currency_alphavantage(symbol)
-    if result_alphavantage is None:
-        return get_currency_moex(symbol)
-    return result_alphavantage
+    result_moex = get_currency_moex(symbol)
+    if result_moex is None:
+        return get_currency_alphavantage(symbol)
+    return result_moex
