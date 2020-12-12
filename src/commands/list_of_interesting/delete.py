@@ -11,7 +11,7 @@ from database import delete_users_ticker
 
 def delete(update: Update, context: CallbackContext):
     """Delete ticker from messege from user's list and finish conversation."""
-    ticker = update.message.text
+    ticker = update.message.text.upper()
     chat_id = update.message.chat_id
     delete_users_ticker(chat_id, ticker)
     update.message.reply_text("Deleted succefully!")
