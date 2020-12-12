@@ -36,8 +36,8 @@ def ask_period(update: Update):
 
 def get_ticker(update: Update, context: CallbackContext):
     """Get company ticker or "my" from user and ask about period."""
-    text = update.message.text
-    if text == "my":
+    text = update.message.text.upper()
+    if text == "MY":
         context.user_data["tickers"] = tickers_list(update.message.chat_id)
     else:
         context.user_data["tickers"] = [text.upper()]
