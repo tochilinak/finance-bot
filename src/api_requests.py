@@ -8,10 +8,10 @@ import datetime
 def moex_cost(symbol):
     symbol = symbol.upper()
     query = ("https://iss.moex.com/iss/engines/stock/markets/shares/"
-             "securities/GAZP/candles?interval=1&iss.reverse=true")
-    resp = requests.get(query).json()
-    price_col = resp["columns"]["close"]
-    date_col = resp["columns"]["end"]
+             f"securities/{symbol}/candles.json?interval=1&iss.reverse=true")
+    resp = requests.get(query).json()["candles"]
+    price_col = resp["columns"].index("close")
+    date_col = resp["columns"].index("end")
     price = resp["data"][0][price_col]
     date = resp["data"][0][date_col]
     return price, date
