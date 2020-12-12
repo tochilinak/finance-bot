@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import sessionmaker
+from enum import IntEnum
 
 
 engine = create_engine("sqlite:///portfolio.db")
@@ -15,6 +16,11 @@ class Users(Base):
 
     telegram_address = Column(Integer, primary_key=True)
     company_symbol = Column(String, primary_key=True)
+
+
+class OperationType(IntEnum):
+    buy_operation = 0
+    sell_operation = 1
 
 
 class Operations(Base):
@@ -86,7 +92,7 @@ def delete_users_ticker(telegram_address, symbol):
 
 
 def add_operation(telegram_address, symbol, count, price, date,
-                  operation_type):
+                  OperationType):
     """Add operation to the table.
 
     Types of parameters:
@@ -95,13 +101,14 @@ def add_operation(telegram_address, symbol, count, price, date,
     :param count: Integer;
     :param price: Integer;
     :param date: String;
-    :param operation_type: Integer; 0 of it's buy operation, 1 in another case.
+    :param OperationType: enum OperationType object.
     """
     current_operation = Operations(telegram_address=telegram_address,
                                    company_symbol=symbol,
                                    count_of_stocks=count, price=price,
-                                   date=date, operation_type=operation_type)
+                                   date=date, operation_type=OperationType.value)
 
     session = sessionmaker(bind=engine)()
     session.add(current_operation)
     session.commit()
+
