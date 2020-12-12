@@ -21,7 +21,7 @@ def info_line(ticker: str):
         last_update = last_update.replace("-", r"\-")
 
     return r"*%s:* %s %s \(last updated: %s\)" % (ticker, price, currency,
-                                               last_update)
+                                                  last_update)
 
 
 def current_price(update: Update, context: CallbackContext):
