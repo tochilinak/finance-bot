@@ -11,7 +11,7 @@ from database import add_users_ticker
 
 def add(update: Update, context: CallbackContext):
     """Add ticker from messege to user's list and finish conversation."""
-    ticker = update.message.text
+    ticker = update.message.text.upper()
     chat_id = update.message.chat_id
     add_users_ticker(chat_id, ticker)
     update.message.reply_text("Added %s succefully!" % ticker)
