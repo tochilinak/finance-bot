@@ -49,7 +49,7 @@ def give_custom_price(update: Update, context: CallbackContext):
 
         if not values:
             update.message.reply_text(
-                f"I have not information about {ticker}"
+                f"I have no information about {ticker}"
             )
         else:
             currency = get_currency(ticker)

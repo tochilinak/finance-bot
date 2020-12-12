@@ -59,7 +59,7 @@ def price_start(update: Update, context: CallbackContext):
         )
         update.message.reply_text(
             "Ok, now I need to know the company you are interested in\n"
-            "Enter a company ticker or 'my' for prices from your list of"
+            "Enter a company ticker or 'my' for prices from your list of "
             "companies of interest"
         )
         return "ticker"
