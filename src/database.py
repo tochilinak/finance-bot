@@ -32,7 +32,7 @@ class Operations(Base):
 
 
 # deleting table(s)
-#Base.metadata.drop_all(bind=engine, tables=[Operations.__table__])
+# Base.metadata.drop_all(bind=engine, tables=[Operations.__table__])
 
 # create tables that don't exist
 Base.metadata.create_all(bind=engine)
@@ -97,11 +97,10 @@ def add_operation(telegram_address, symbol, count, price, date,
     :param date: String;
     :param operation_type: Integer; 0 of it's buy operation, 1 in another case.
     """
-
     current_operation = Operations(telegram_address=telegram_address,
-                                   company_symbol=symbol, count_of_stocks=
-                                   count, price=price, date=date,
-                                   operation_type=operation_type)
+                                   company_symbol=symbol,
+                                   count_of_stocks=count, price=price,
+                                   date=date, operation_type=operation_type)
 
     session = sessionmaker(bind=engine)()
     session.add(current_operation)
