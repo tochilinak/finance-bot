@@ -149,6 +149,6 @@ def draw_multiplot(plot_data_list, image_filename, title=None):
         fig.delaxes(axes_by_index(i, height, width, axes))
 
     fig.autofmt_xdate()
-    fig.tight_layout()
+    fig.tight_layout(w_pad=1.5)
 
     plt.savefig(image_filename, format="png")
