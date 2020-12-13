@@ -18,7 +18,7 @@ class Users(Base):
     company_symbol = Column(String, primary_key=True)
 
 
-class operation_type(IntEnum):
+class OperationType(IntEnum):
     BUY_OPERATION = 0
     SELL_OPERATION = 1
 
