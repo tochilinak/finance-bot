@@ -9,16 +9,19 @@ from api_requests import current_cost, get_currency
 def info_line(ticker: str):
     """Cretate string in format "ticker: price"."""
     ticker = ticker.upper()
-    price = current_cost(ticker)
+    result = current_cost(ticker)
     currency = get_currency(ticker)
 
-    if not price or not currency:
+    if not result or not currency:
         price = "no information"
         currency = ""
     else:
+        price, last_update = result
         price = str(price).replace(".", r"\.")
+        last_update = last_update.replace("-", r"\-")
 
-    return "*%s:* %s %s" % (ticker, price, currency)
+    return r"*%s:* %s %s \(last updated: %s\)" % (ticker, price, currency,
+                                                  last_update)
 
 
 def current_price(update: Update, context: CallbackContext):
