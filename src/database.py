@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import sessionmaker
+from enum import IntEnum
 
 
 engine = create_engine("sqlite:///portfolio.db")
@@ -16,6 +17,28 @@ class Users(Base):
     telegram_address = Column(Integer, primary_key=True)
     company_symbol = Column(String, primary_key=True)
 
+
+class OperationType(IntEnum):
+    BUY_OPERATION = 0
+    SELL_OPERATION = 1
+
+
+class Operations(Base):
+    """Table with buy-sell operations."""
+
+    __tablename__ = 'Operations'
+
+    id = Column(Integer, primary_key=True)
+    telegram_address = Column(Integer)
+    company_symbol = Column(String)
+    count_of_stocks = Column(Integer)
+    price = Column(Integer)
+    date = Column(String)
+    operation_type = Column(Integer)
+
+
+# deleting table(s)
+# Base.metadata.drop_all(bind=engine, tables=[Operations.__table__])
 
 # create tables that don't exist
 Base.metadata.create_all(bind=engine)
@@ -65,4 +88,27 @@ def delete_users_ticker(telegram_address, symbol):
                                     symbol).first()
     if q is not None:
         session.delete(q)
+    session.commit()
+
+
+def add_operation(telegram_address, symbol, count, price, date,
+                  operation_type):
+    """Add operation to the table.
+
+    Types of parameters:
+    :param telegram_address: Integer;
+    :param symbol: String;
+    :param count: Integer;
+    :param price: Integer;
+    :param date: String;
+    :param operation_type: enum operation_type object.
+    """
+    current_operation = Operations(telegram_address=telegram_address,
+                                   company_symbol=symbol,
+                                   count_of_stocks=count, price=price,
+                                   date=date, operation_type=operation_type.
+                                   value)
+
+    session = sessionmaker(bind=engine)()
+    session.add(current_operation)
     session.commit()
