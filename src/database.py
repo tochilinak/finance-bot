@@ -18,9 +18,9 @@ class Users(Base):
     company_symbol = Column(String, primary_key=True)
 
 
-class OperationType(IntEnum):
-    buy_operation = 0
-    sell_operation = 1
+class operation_type(IntEnum):
+    BUY_OPERATION = 0
+    SELL_OPERATION = 1
 
 
 class Operations(Base):
@@ -92,7 +92,7 @@ def delete_users_ticker(telegram_address, symbol):
 
 
 def add_operation(telegram_address, symbol, count, price, date,
-                  OperationType):
+                  operation_type):
     """Add operation to the table.
 
     Types of parameters:
@@ -101,14 +101,14 @@ def add_operation(telegram_address, symbol, count, price, date,
     :param count: Integer;
     :param price: Integer;
     :param date: String;
-    :param OperationType: enum OperationType object.
+    :param operation_type: enum operation_type object.
     """
     current_operation = Operations(telegram_address=telegram_address,
                                    company_symbol=symbol,
                                    count_of_stocks=count, price=price,
-                                   date=date, operation_type=OperationType.value)
+                                   date=date, operation_type=operation_type.
+                                   value)
 
     session = sessionmaker(bind=engine)()
     session.add(current_operation)
     session.commit()
-
