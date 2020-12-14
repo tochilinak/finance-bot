@@ -1,1 +1,1 @@
-PLOT_FILENAME = "images/plot.png"
+PLOT_FILENAME = "plot.png"
