@@ -50,6 +50,7 @@ class MoexSymbolByName(APIQuery):
 
     def __init__(self, name):
         self.name = name
+        self.report_list = [name]
 
     def get_server_response(self):
         query = ("https://iss.moex.com/iss/securities.json?q=" + self.name

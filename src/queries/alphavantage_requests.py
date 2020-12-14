@@ -34,7 +34,7 @@ class AlphaVantageSymbolByName(APIQuery):
     def get_server_response(self):
         query = "https://www.alphavantage.co/query"
         params = {"function": "SYMBOL_SEARCH", "keywords": self.name, "apikey":
-            config.API_KEY_ALPHAVANTAGE}
+                  config.API_KEY_ALPHAVANTAGE}
         return requests.get(query, params=params).json()
 
     def result(self, resp):
@@ -53,8 +53,8 @@ class AlphaVantagePeriodDataOfCost(APIQuery):
 
     def get_server_response(self):
         query = "https://www.alphavantage.co/query"
-        params = {"function": "TIME_SERIES_DAILY", "symbol": self.symbol, "apikey":
-            config.API_KEY_ALPHAVANTAGE, "outputsize": "full"}
+        params = {"function": "TIME_SERIES_DAILY", "symbol": self.symbol,
+                  "apikey": config.API_KEY_ALPHAVANTAGE, "outputsize": "full"}
         return requests.get(query, params=params).json()
 
     def result(self, resp):
@@ -69,7 +69,7 @@ class AlphaVantagePeriodDataOfCost(APIQuery):
             if current_date.isoformat()[:10] in resp.keys():
                 res[0].append(current_date)
                 res[1].append(float(resp[current_date.isoformat()[:10]]
-                                       ["4. close"]))
+                              ["4. close"]))
         return res
 
 
@@ -83,7 +83,7 @@ class AlphaVantageCurrency(APIQuery):
     def get_server_response(self):
         query = "https://www.alphavantage.co/query"
         params = {"function": "OVERVIEW", "symbol": self.symbol, "apikey":
-            config.API_KEY_ALPHAVANTAGE}
+                  config.API_KEY_ALPHAVANTAGE}
         return requests.get(query, params=params).json()
 
     def result(self, resp):
