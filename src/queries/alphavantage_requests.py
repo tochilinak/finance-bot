@@ -58,7 +58,7 @@ class AlphaVantagePeriodDataOfCost(APIQuery):
         return requests.get(query, params=params).json()
 
     def result(self, resp):
-        res = self.error_return
+        res = [[], []]
         if "Error Message" in resp.keys():
             return res
         resp = resp["Time Series (Daily)"]

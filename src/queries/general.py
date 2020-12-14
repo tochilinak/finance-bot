@@ -31,7 +31,7 @@ class APIQuery(ABC):
         except Exception as e:
             logging.error(f"Query failed: {self.__class__.__name__} "
                           f"with parameters {self.report_list}\n"
-                          f"Exception: {e}\n"
+                          f"Exception: {type(e).__name__} {e}\n"
                           "response:\n" + str(resp)[:150])
             return self.error_return
 
