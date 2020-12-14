@@ -1,64 +1,12 @@
 import requests
-import json
-import config
 import apimoex
-import datetime
+from queries.alphavantage_requests import *
+from queries.moex_requests import *
+from queries.general import query_function_factory
 
 
-def moex_cost(symbol):
-    symbol = symbol.upper()
-    query = ("https://iss.moex.com/iss/engines/stock/markets/shares/"
-             f"securities/{symbol}/candles.json?interval=1&iss.reverse=true")
-    resp = requests.get(query).json()["candles"]
-    price_col = resp["columns"].index("close")
-    date_col = resp["columns"].index("end")
-
-    # not found
-    if len(resp["data"]) == 0:
-        return None
-
-    price = resp["data"][0][price_col]
-    date = resp["data"][0][date_col]
-    return price, date
-
-
-def moex_company_list():
-    query = ("https://iss.moex.com/iss/engines/stock/markets/shares/"
-             "boards/TQBR/securities.json?securities.columns=SECID&"
-             "iss.meta=off&iss.only=securities")
-    resp = requests.get(query).json()
-    return [x[0] for x in resp['securities']['data']]
-
-
-def alphavantage_cost(symbol):
-    query = "https://www.alphavantage.co/query"
-    params = {"function": "TIME_SERIES_INTRADAY", "symbol": symbol,
-              "interval": "1min", "apikey": config.API_KEY_ALPHAVANTAGE}
-    resp = requests.get(query, params=params).json()
-    if "Error Message" in resp.keys():
-        return None
-    last_cost_update_key = list(resp["Time Series (1min)"].keys())[0]
-    result = resp["Time Series (1min)"][last_cost_update_key]["4. close"]
-    return result, last_cost_update_key
-
-
-def moex_symbol_by_name(name):
-    query = ("https://iss.moex.com/iss/securities.json?q=" + name
-             + "&securities.columns=name,secid&iss.meta=off")
-    resp = requests.get(query).json()
-    company_list = moex_company_list()
-    only_stock = filter(lambda x: x[1] in company_list,
-                        resp['securities']['data'])
-    return [x[:2] for x in only_stock]
-
-
-def alphavantage_symbol_by_name(name):
-    query = "https://www.alphavantage.co/query"
-    params = {"function": "SYMBOL_SEARCH", "keywords": name, "apikey":
-              config.API_KEY_ALPHAVANTAGE}
-    resp = requests.get(query, params=params).json()
-    result = [[x["2. name"], x["1. symbol"]] for x in resp["bestMatches"]]
-    return result
+moex_cost = query_function_factory(MoexCost)
+alphavantage_cost = query_function_factory(AlphaVantageCost)
 
 
 def current_cost(symbol):
@@ -71,6 +19,10 @@ def current_cost(symbol):
     if moex_result is not None:
         return moex_result
     return alphavantage_cost(symbol)
+
+
+moex_symbol_by_name = query_function_factory(MoexSymbolByName)
+alphavantage_symbol_by_name = query_function_factory(AlphaVantageSymbolByName)
 
 
 def symbol_by_name(name, result_size=5):
@@ -96,42 +48,14 @@ def symbol_by_name(name, result_size=5):
     return [[y, x] for x, y in found.items()]
 
 
-def parse_date(date):
-    """Parse string with date to datetime object.
-
-    :param date: type - string.
-    :return: type - datetime.
-    """
-    date_list = list(map(int, date.split('-')))
-    return datetime.datetime(date_list[0], date_list[1], date_list[2])
-
-
 def get_period_data_of_cost_moex(start, end, symbol):
     resp = apimoex.get_board_history(requests.Session(), symbol, start, end)
     return [[parse_date(x['TRADEDATE']) for x in resp], [float(x['CLOSE'])
                                                          for x in resp]]
 
 
-def get_period_data_of_cost_alphavantage(start, end, symbol):
-    query = "https://www.alphavantage.co/query"
-    params = {"function": "TIME_SERIES_DAILY", "symbol": symbol, "apikey":
-              config.API_KEY_ALPHAVANTAGE, "outputsize": "full"}
-    result = [[], []]
-    if "Error Message" in requests.get(query, params=params).json().keys():
-        return result
-
-    # there are prices of stocks by each day from company history
-    # in "Time Series (Daily)" resp key.
-    resp = requests.get(query, params=params).json()["Time Series (Daily)"]
-    start_ordinal = parse_date(start).toordinal()
-    end_ordinal = parse_date(end).toordinal()
-    for date_ordinal in range(start_ordinal, end_ordinal + 1):
-        current_date = datetime.datetime.fromordinal(date_ordinal)
-        if current_date.isoformat()[:10] in resp.keys():
-            result[0].append(current_date)
-            result[1].append(float(resp[current_date.isoformat()[:10]]
-                                   ["4. close"]))
-    return result
+get_period_data_of_cost_alphavantage = query_function_factory(
+                                        AlphaVantagePeriodDataOfCost)
 
 
 def get_period_data_of_cost(start, end, symbol):
@@ -143,34 +67,15 @@ def get_period_data_of_cost(start, end, symbol):
     :return: list with dates as datetime objects, list with costs as floats.
     """
     result_moex = get_period_data_of_cost_moex(start, end, symbol)
-    result_alphavantage = get_period_data_of_cost_alphavantage(start,
-                                                               end, symbol)
-    return result_moex if len(result_moex[0]) else result_alphavantage
+
+    if len(result_moex[0]):
+        return result_moex
+
+    return get_period_data_of_cost_alphavantage(start, end, symbol)
 
 
-def get_currency_alphavantage(symbol):
-    query = "https://www.alphavantage.co/query"
-    params = {"function": "OVERVIEW", "symbol": symbol, "apikey":
-              config.API_KEY_ALPHAVANTAGE}
-    resp = requests.get(query, params=params).json()
-    if "Currency" not in resp.keys():
-        return None
-    return resp["Currency"]
-
-
-def get_currency_moex(symbol):
-    query = "https://iss.moex.com/iss/securities/" + symbol + ".json"
-
-    resp = requests.get(query).json()["boards"]
-    col = resp["columns"].index("currencyid")
-    for description_string in resp["data"]:
-
-        # there is an information of company's currency in such string.
-        if description_string[1] == "TQBR":
-
-            # this cell contains the name of a currency.
-            return description_string[col]
-    return None
+get_currency_alphavantage = query_function_factory(AlphaVantageCurrency)
+get_currency_moex = query_function_factory(MoexCurrency)
 
 
 def get_currency(symbol):
