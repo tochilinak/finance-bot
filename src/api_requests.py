@@ -3,6 +3,8 @@ import apimoex
 from queries.alphavantage_requests import *
 from queries.moex_requests import *
 from queries.general import query_function_factory
+from dataclasses import dataclass
+from enum import Enum
 
 
 moex_cost = query_function_factory(MoexCost)
@@ -88,3 +90,31 @@ def get_currency(symbol):
     if result_moex is None:
         return get_currency_alphavantage(symbol)
     return result_moex
+
+
+@dataclass
+class QueryData:
+    """Class for making asynchronous requests."""
+
+    symbol: str = None
+    start_date: str = None
+    end_date: str = None
+
+
+class QueryType(Enum):
+    CURRENT_COST = auto()
+    PERIOD_COST = auto()
+    CURRENCY = auto()
+
+
+moex_queries = {
+    QueryType.CURRENT_COST: MoexCost,
+    QueryType.PERIOD_COST: None,
+    QueryType.CURRENCY: MoexCurrency
+}
+
+alphavantage_quries = {
+    QueryType.CURRENT_COST: AlphaVantageCost,
+    QueryType.PERIOD_COST: AlphaVantageSymbolByName,
+    QueryType.CURRENCY: AlphaVantageCurrency
+}
