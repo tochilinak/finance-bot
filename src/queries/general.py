@@ -1,9 +1,13 @@
 from abc import ABC, abstractmethod
 import logging
 import datetime
+from requests import Session
 
 
 class APIQuery(ABC):
+
+    def __init__(self, session):
+        self.session = session
 
     @property
     def error_return(self):
@@ -12,22 +16,22 @@ class APIQuery(ABC):
 
     @abstractmethod
     def get_server_response(self):
-        """Make query and return JSON with response."""
+        """Make query and record into self.response."""
         pass
 
     @abstractmethod
-    def result(self, resp):
-        """Process response and return needed data."""
+    def process_json(self, resp):
+        """Process JSON and return needed data."""
         pass
 
     report_list = []
 
-    def make_query(self):
-        """Make query and report error."""
+    def get_result(self, future=False):
+        """Try to process and report error."""
         resp = ""
         try:
-            resp = self.get_server_response()
-            return self.result(resp)
+            resp = self.response.json()
+            return self.process_json(resp)
         except Exception as e:
             logging.error(f"Query failed: {self.__class__.__name__} "
                           f"with parameters {self.report_list}\n"
@@ -38,8 +42,9 @@ class APIQuery(ABC):
 
 def query_function_factory(QueryClass):
     def func(*args):
-        query_object = QueryClass(*args)
-        return query_object.make_query()
+        query_object = QueryClass(Session(), *args)
+        query_object.get_server_response()
+        return query_object.get_result()
     return func
 
 
