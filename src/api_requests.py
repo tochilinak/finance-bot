@@ -10,6 +10,12 @@ import threading
 from concurrent.futures import as_completed
 
 
+class QueryType(Enum):
+    CURRENT_COST = auto()
+    PERIOD_COST = auto()
+    CURRENCY = auto()
+
+
 moex_cost = query_function_factory(MoexCost)
 alphavantage_cost = query_function_factory(AlphaVantageCost)
 
@@ -82,6 +88,12 @@ def get_period_data_of_cost(start, end, symbol):
     return get_period_data_of_cost_alphavantage(query_data)
 
 
+def get_period_data_of_cost_query_data(query_data):
+    result = get_period_data_of_cost(query_data.start_date,
+                                     query_data.end_date, query_data.symbol)
+    query_data.result[QueryType.PERIOD_COST] = result
+
+
 get_currency_alphavantage = query_function_factory(AlphaVantageCurrency)
 get_currency_moex = query_function_factory(MoexCurrency)
 
@@ -97,12 +109,6 @@ def get_currency(symbol):
     if result_moex is None:
         return get_currency_alphavantage(query_data)
     return result_moex
-
-
-class QueryType(Enum):
-    CURRENT_COST = auto()
-    PERIOD_COST = auto()
-    CURRENCY = auto()
 
 
 moex_queries = {
@@ -124,8 +130,8 @@ def start_requests(query_data_list, query_types, type_dict):
             if query_type == QueryType.PERIOD_COST:
                 continue
             query = type_dict[query_type](session, query_data,
-                                             query_data_id=query_data_id,
-                                             query_type=query_type)
+                                          query_data_id=query_data_id,
+                                          query_type=query_type)
             query.get_server_response()
             query.response.attached_to = query
             list_of_futures.append(query.response)
@@ -141,7 +147,7 @@ def collect_results(list_of_futures, query_data_list):
         query_data.result[query.query_type] = query.get_result()
 
 
-def async_request(query_data_list, query_types):
+def async_current_cost_and_currency(query_data_list, query_types):
     # first try moex requests
     list_of_futures = start_requests(query_data_list, query_types, moex_queries)
     collect_results(list_of_futures, query_data_list)
@@ -149,10 +155,37 @@ def async_request(query_data_list, query_types):
     not_found_data = []
     for query_data in query_data_list:
         if any(query_data.result[x] == moex_queries[x].empty_return
-               for x in query_types):
+               for x in query_types if not x == QueryType.PERIOD_COST):
             not_found_data.append(query_data)
 
     # try alphavantage for not found
     list_of_futures = start_requests(not_found_data, query_types,
                                      alphavantage_queries)
     collect_results(list_of_futures, not_found_data)
+
+
+def start_period_cost(query_data_list):
+    threads = []
+    for query_data in query_data_list:
+        x = threading.Thread(target=get_period_data_of_cost_query_data,
+                             args=(query_data,))
+        threads.append(x)
+        x.start()
+    return threads
+
+
+def async_request(query_data_list, query_types):
+    threads = []
+    if QueryType.PERIOD_COST in query_types:
+        threads += start_period_cost(query_data_list)
+
+    rest = threading.Thread(target=async_current_cost_and_currency,
+                            args=(query_data_list, query_types,))
+    threads.append(rest)
+    rest.start()
+
+    for thread in threads:
+        thread.join()
+
+    for query_data in query_data_list:
+        print(query_data.result)
