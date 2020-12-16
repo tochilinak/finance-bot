@@ -21,18 +21,20 @@ class APIQuery(ABC):
     def set_report(self):
         self.report_list = []
 
-    def __init__(self, session, query_data):
+    def __init__(self, session, query_data, query_data_id=-1, query_type=None):
         self.session = session
         if query_data.symbol:
             self.symbol = query_data.symbol.upper()
         self.start = query_data.start_date
         self.end = query_data.end_date
         self.name = query_data.name
+        self.query_data_id = query_data_id
+        self.query_type = query_type
         self.set_report()
 
     @property
-    def error_return(self):
-        """Make sure error_return is implemented."""
+    def empty_return(self):
+        """Make sure empty_return is implemented."""
         raise NotImplementedError
 
     @abstractmethod
@@ -45,7 +47,7 @@ class APIQuery(ABC):
         """Process JSON and return needed data."""
         pass
 
-    def get_result(self, future=False):
+    def get_result(self):
         """Try to process and report error."""
         resp = ""
         try:
@@ -56,7 +58,7 @@ class APIQuery(ABC):
                           f"with parameters {self.report_list}\n"
                           f"Exception: {type(e).__name__} {e}\n"
                           "response:\n" + str(resp)[:150])
-            return self.error_return
+            return self.empty_return
 
 
 def query_function_factory(QueryClass):

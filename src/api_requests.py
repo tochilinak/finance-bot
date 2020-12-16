@@ -6,6 +6,8 @@ from queries.general import *
 from enum import Enum, auto
 from requests_futures.sessions import FuturesSession
 import itertools as it
+import threading
+from concurrent.futures import as_completed
 
 
 moex_cost = query_function_factory(MoexCost)
@@ -105,24 +107,52 @@ class QueryType(Enum):
 
 moex_queries = {
     QueryType.CURRENT_COST: MoexCost,
-    QueryType.PERIOD_COST: None,
     QueryType.CURRENCY: MoexCurrency
 }
 
-alphavantage_quries = {
+alphavantage_queries = {
     QueryType.CURRENT_COST: AlphaVantageCost,
-    QueryType.PERIOD_COST: AlphaVantageSymbolByName,
     QueryType.CURRENCY: AlphaVantageCurrency
 }
 
 
-'''
-def async_request(query_data_list, query_types):
+def start_requests(query_data_list, query_types, type_dict):
     session = FuturesSession()
+    list_of_futures = []
+    for query_data_id, query_data in enumerate(query_data_list):
+        for query_type in query_types:
+            if query_type == QueryType.PERIOD_COST:
+                continue
+            query = type_dict[query_type](session, query_data,
+                                             query_data_id=query_data_id,
+                                             query_type=query_type)
+            query.get_server_response()
+            query.response.attached_to = query
+            list_of_futures.append(query.response)
+
+    return list_of_futures
+
+
+def collect_results(list_of_futures, query_data_list):
+    for future in as_completed(list_of_futures):
+        query = future.attached_to
+        query.response = future.result()
+        query_data = query_data_list[query.query_data_id]
+        query_data.result[query.query_type] = query.get_result()
+
+
+def async_request(query_data_list, query_types):
     # first try moex requests
-    queries = []
-    for query_data, query_type in it.product(query_data_list, query_types):
-        if query_type == QueryType.PERIOD_COST:
-            continue
-        query = moex_queries[query_type]()
-'''
+    list_of_futures = start_requests(query_data_list, query_types, moex_queries)
+    collect_results(list_of_futures, query_data_list)
+
+    not_found_data = []
+    for query_data in query_data_list:
+        if any(query_data.result[x] == moex_queries[x].empty_return
+               for x in query_types):
+            not_found_data.append(query_data)
+
+    # try alphavantage for not found
+    list_of_futures = start_requests(not_found_data, query_types,
+                                     alphavantage_queries)
+    collect_results(list_of_futures, not_found_data)

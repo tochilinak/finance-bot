@@ -4,7 +4,7 @@ import config
 
 
 class AlphaVantageCost(APIQuery):
-    error_return = None
+    empty_return = None
 
     def set_report(self):
         self.report_list = [self.symbol]
@@ -13,7 +13,7 @@ class AlphaVantageCost(APIQuery):
         query = "https://www.alphavantage.co/query"
         params = {"function": "TIME_SERIES_INTRADAY", "symbol": self.symbol,
                   "interval": "1min", "apikey": config.API_KEY_ALPHAVANTAGE}
-        self.response = requests.get(query, params=params)
+        self.response = self.session.get(query, params=params)
 
     def process_json(self, resp):
         if "Error Message" in resp.keys():
@@ -24,7 +24,7 @@ class AlphaVantageCost(APIQuery):
 
 
 class AlphaVantageSymbolByName(APIQuery):
-    error_return = []
+    empty_return = []
 
     def set_report(self):
         self.report_list = [self.name]
@@ -33,7 +33,7 @@ class AlphaVantageSymbolByName(APIQuery):
         query = "https://www.alphavantage.co/query"
         params = {"function": "SYMBOL_SEARCH", "keywords": self.name, "apikey":
                   config.API_KEY_ALPHAVANTAGE}
-        self.response = requests.get(query, params=params)
+        self.response = self.session.get(query, params=params)
 
     def process_json(self, resp):
         result = [[x["2. name"], x["1. symbol"]] for x in resp["bestMatches"]]
@@ -41,7 +41,7 @@ class AlphaVantageSymbolByName(APIQuery):
 
 
 class AlphaVantagePeriodDataOfCost(APIQuery):
-    error_return = [[], []]
+    empty_return = [[], []]
 
     def set_report(self):
         self.report_list = [self.start, self.end, self.symbol]
@@ -50,7 +50,7 @@ class AlphaVantagePeriodDataOfCost(APIQuery):
         query = "https://www.alphavantage.co/query"
         params = {"function": "TIME_SERIES_DAILY", "symbol": self.symbol,
                   "apikey": config.API_KEY_ALPHAVANTAGE, "outputsize": "full"}
-        self.response = requests.get(query, params=params)
+        self.response = self.session.get(query, params=params)
 
     def process_json(self, resp):
         res = [[], []]
@@ -69,7 +69,7 @@ class AlphaVantagePeriodDataOfCost(APIQuery):
 
 
 class AlphaVantageCurrency(APIQuery):
-    error_return = None
+    empty_return = None
 
     def set_report(self):
         self.report_list = [self.symbol]
@@ -78,7 +78,7 @@ class AlphaVantageCurrency(APIQuery):
         query = "https://www.alphavantage.co/query"
         params = {"function": "OVERVIEW", "symbol": self.symbol, "apikey":
                   config.API_KEY_ALPHAVANTAGE}
-        self.response = requests.get(query, params=params)
+        self.response = self.session.get(query, params=params)
 
     def process_json(self, resp):
         if "Currency" not in resp.keys():
