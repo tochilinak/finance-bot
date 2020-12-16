@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 from enum import IntEnum
+import csv
 
 
 engine = create_engine("sqlite:///portfolio.db")
@@ -111,4 +112,35 @@ def add_operation(telegram_address, symbol, count, price, date,
 
     session = sessionmaker(bind=engine)()
     session.add(current_operation)
+    session.commit()
+
+
+def delete_operation(operation_id):
+    """Delete operation with current id.
+
+    :param operation_id: id of operation.
+    """
+    session = sessionmaker(bind=engine)()
+    # SQLAlchemy Query object (contains db response)
+    q = session.query(Operations).filter(Operations.id == operation_id).first()
+    if q is not None:
+        session.delete(q)
+    session.commit()
+
+
+def get_list_of_operations(telegram_address):
+    """Make .csv file with all user's operations.
+
+    :param telegram_address: user's address.
+    """
+    session = sessionmaker(bind=engine)()
+    headers = [x.name for x in Operations.__table__.columns]
+    q = session.query(Operations).filter(Operations.telegram_address
+                                         == telegram_address)
+    content = [[x.id, x.telegram_address, x.company_symbol,
+                x.count_of_stocks, x.price, x.date, x.operation_type]
+               for x in q]
+    with open("out.csv", "w") as file:
+        writer = csv.writer(file)
+        writer.writerows([headers] + content)
     session.commit()
