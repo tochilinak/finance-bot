@@ -2,9 +2,10 @@ import requests
 import apimoex
 from queries.alphavantage_requests import *
 from queries.moex_requests import *
-from queries.general import query_function_factory
-from dataclasses import dataclass
-from enum import Enum
+from queries.general import *
+from enum import Enum, auto
+from requests_futures.sessions import FuturesSession
+import itertools as it
 
 
 moex_cost = query_function_factory(MoexCost)
@@ -17,10 +18,11 @@ def current_cost(symbol):
     Returns int (price), string (date) if found.
     Returns None if not found
     """
-    moex_result = moex_cost(symbol)
+    query_data = QueryData(symbol=symbol)
+    moex_result = moex_cost(query_data)
     if moex_result is not None:
         return moex_result
-    return alphavantage_cost(symbol)
+    return alphavantage_cost(query_data)
 
 
 moex_symbol_by_name = query_function_factory(MoexSymbolByName)
@@ -35,8 +37,9 @@ def symbol_by_name(name, result_size=5):
     result_size (default: 5) - maximum number of companies
     returned by one api
     """
-    moex_result = moex_symbol_by_name(name)[:result_size]
-    alphavantage_result = alphavantage_symbol_by_name(name)[:result_size]
+    query_data = QueryData(name=name)
+    moex_result = moex_symbol_by_name(query_data)[:result_size]
+    alphavantage_result = alphavantage_symbol_by_name(query_data)[:result_size]
 
     def pairs_into_dict(list_of_pairs):
         return dict([[y, x] for x, y in list_of_pairs])
@@ -68,12 +71,13 @@ def get_period_data_of_cost(start, end, symbol):
     :param symbol: symbol of the company; type - string.
     :return: list with dates as datetime objects, list with costs as floats.
     """
+    query_data = QueryData(start_date=start, end_date=end, symbol=symbol)
     result_moex = get_period_data_of_cost_moex(start, end, symbol)
 
     if len(result_moex[0]):
         return result_moex
 
-    return get_period_data_of_cost_alphavantage(start, end, symbol)
+    return get_period_data_of_cost_alphavantage(query_data)
 
 
 get_currency_alphavantage = query_function_factory(AlphaVantageCurrency)
@@ -86,19 +90,11 @@ def get_currency(symbol):
     :param symbol: symbol of company.
     :return: currency; type - string, None if not found.
     """
-    result_moex = get_currency_moex(symbol)
+    query_data = QueryData(symbol=symbol)
+    result_moex = get_currency_moex(query_data)
     if result_moex is None:
-        return get_currency_alphavantage(symbol)
+        return get_currency_alphavantage(query_data)
     return result_moex
-
-
-@dataclass
-class QueryData:
-    """Class for making asynchronous requests."""
-
-    symbol: str = None
-    start_date: str = None
-    end_date: str = None
 
 
 class QueryType(Enum):
@@ -118,3 +114,15 @@ alphavantage_quries = {
     QueryType.PERIOD_COST: AlphaVantageSymbolByName,
     QueryType.CURRENCY: AlphaVantageCurrency
 }
+
+
+'''
+def async_request(query_data_list, query_types):
+    session = FuturesSession()
+    # first try moex requests
+    queries = []
+    for query_data, query_type in it.product(query_data_list, query_types):
+        if query_type == QueryType.PERIOD_COST:
+            continue
+        query = moex_queries[query_type]()
+'''

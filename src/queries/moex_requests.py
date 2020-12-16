@@ -6,9 +6,7 @@ import config
 class MoexCost(APIQuery):
     error_return = None
 
-    def __init__(self, session, symbol):
-        self.session = session
-        self.symbol = symbol.upper()
+    def set_report(self):
         self.report_list = [self.symbol]
 
     def get_server_response(self):
@@ -50,10 +48,8 @@ moex_company_list = query_function_factory(MoexCompanyList)
 class MoexSymbolByName(APIQuery):
     error_return = []
 
-    def __init__(self, session, name):
-        self.session = session
-        self.name = name
-        self.report_list = [name]
+    def set_report(self):
+        self.report_list = [self.name]
 
     def get_server_response(self):
         query = ("https://iss.moex.com/iss/securities.json?q=" + self.name
@@ -61,7 +57,7 @@ class MoexSymbolByName(APIQuery):
         self.response = requests.get(query)
 
     def process_json(self, resp):
-        company_list = moex_company_list()
+        company_list = moex_company_list(QueryData())
         only_stock = filter(lambda x: x[1] in company_list,
                             resp['securities']['data'])
         return [x[:2] for x in only_stock]
@@ -70,9 +66,7 @@ class MoexSymbolByName(APIQuery):
 class MoexCurrency(APIQuery):
     error_return = None
 
-    def __init__(self, session, symbol):
-        self.session = session
-        self.symbol = symbol
+    def set_report(self):
         self.report_list = [self.symbol]
 
     def get_server_response(self):

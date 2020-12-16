@@ -2,12 +2,33 @@ from abc import ABC, abstractmethod
 import logging
 import datetime
 from requests import Session
+from dataclasses import dataclass, field
+
+
+@dataclass
+class QueryData:
+    """Class for stroring data that is needed to make requests."""
+
+    symbol: str = None
+    start_date: str = None
+    end_date: str = None
+    name: str = None
+    result: dict = field(default_factory=dict) # for asynchronous requests
 
 
 class APIQuery(ABC):
 
-    def __init__(self, session):
+    def set_report(self):
+        self.report_list = []
+
+    def __init__(self, session, query_data):
         self.session = session
+        if query_data.symbol:
+            self.symbol = query_data.symbol.upper()
+        self.start = query_data.start_date
+        self.end = query_data.end_date
+        self.name = query_data.name
+        self.set_report()
 
     @property
     def error_return(self):
@@ -24,8 +45,6 @@ class APIQuery(ABC):
         """Process JSON and return needed data."""
         pass
 
-    report_list = []
-
     def get_result(self, future=False):
         """Try to process and report error."""
         resp = ""
@@ -41,8 +60,8 @@ class APIQuery(ABC):
 
 
 def query_function_factory(QueryClass):
-    def func(*args):
-        query_object = QueryClass(Session(), *args)
+    def func(query_data):
+        query_object = QueryClass(Session(), query_data)
         query_object.get_server_response()
         return query_object.get_result()
     return func

@@ -6,9 +6,7 @@ import config
 class AlphaVantageCost(APIQuery):
     error_return = None
 
-    def __init__(self, session, symbol):
-        self.session = session
-        self.symbol = symbol.upper()
+    def set_report(self):
         self.report_list = [self.symbol]
 
     def get_server_response(self):
@@ -28,9 +26,7 @@ class AlphaVantageCost(APIQuery):
 class AlphaVantageSymbolByName(APIQuery):
     error_return = []
 
-    def __init__(self, session, name):
-        self.session = session
-        self.name = name
+    def set_report(self):
         self.report_list = [self.name]
 
     def get_server_response(self):
@@ -47,11 +43,7 @@ class AlphaVantageSymbolByName(APIQuery):
 class AlphaVantagePeriodDataOfCost(APIQuery):
     error_return = [[], []]
 
-    def __init__(self, session, start, end, symbol):
-        self.session = session
-        self.start = start
-        self.end = end
-        self.symbol = symbol
+    def set_report(self):
         self.report_list = [self.start, self.end, self.symbol]
 
     def get_server_response(self):
@@ -79,9 +71,7 @@ class AlphaVantagePeriodDataOfCost(APIQuery):
 class AlphaVantageCurrency(APIQuery):
     error_return = None
 
-    def __init__(self, session, symbol):
-        self.session = session
-        self.symbol = symbol
+    def set_report(self):
         self.report_list = [self.symbol]
 
     def get_server_response(self):
