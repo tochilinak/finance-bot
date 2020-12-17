@@ -3,6 +3,7 @@ from matplotlib.dates import AutoDateLocator, AutoDateFormatter
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List
+import warnings
 
 """
 Usage example:
@@ -93,7 +94,10 @@ def draw_plot(plot_data, image_filename):
 
     :plot_data: PlotData object.
     """
-    fig, ax = plt.subplots()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        fig, ax = plt.subplots()
+
     draw_cell(plot_data, ax)
 
     fig.subplots_adjust(left=0.2)
@@ -134,9 +138,12 @@ def draw_multiplot(plot_data_list, image_filename, title=None):
         return
 
     height, width = choose_size(plot_num)
-    fig, axes = plt.subplots(height, width,
-                             figsize=(3.7 * width, 2.4 * height),
-                             sharex=True)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        fig, axes = plt.subplots(height, width,
+                                 figsize=(3.7 * width, 2.4 * height),
+                                 sharex=True)
 
     if title is not None:
         fig.suptitle(title)
