@@ -9,6 +9,7 @@ from commands.price.price import price_handler
 from commands.find_company import find_company_handler
 from commands.list_of_interesting.add import add_to_list_handler
 from commands.list_of_interesting.delete import delete_from_list_handler
+from commands.portfolio.operation import buy_handler, sell_handler
 from commands.basic import (
     unknown_command_handler,
     unknown_text_handler
@@ -60,9 +61,13 @@ def main():
     # Add conversation handler for /find_company command
     dispatcher.add_handler(find_company_handler)
 
-    # Add conversation handler for /add and /delete commands
+    # Add conversation handlers for /add and /delete commands
     dispatcher.add_handler(add_to_list_handler)
     dispatcher.add_handler(delete_from_list_handler)
+
+    # Add handlers for buy and sell
+    dispatcher.add_handler(buy_handler)
+    dispatcher.add_handler(sell_handler)
 
     # Add handlers for unknown messages
     dispatcher.add_handler(unknown_command_handler)
