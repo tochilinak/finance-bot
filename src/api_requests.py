@@ -1,6 +1,6 @@
 import requests
 import apimoex
-from queries.alphavantage_requests import *
+from queries.foreign_companies_requests import *
 from queries.moex_requests import *
 from queries.general import *
 from enum import Enum, auto
@@ -17,7 +17,7 @@ class QueryType(Enum):
 
 
 moex_cost = query_function_factory(MoexCost)
-alphavantage_cost = query_function_factory(AlphaVantageCost)
+finnhub_cost = query_function_factory(FinnhubCost)
 
 
 def current_cost(symbol):
@@ -30,7 +30,7 @@ def current_cost(symbol):
     moex_result = moex_cost(query_data)
     if moex_result is not None:
         return moex_result
-    return alphavantage_cost(query_data)
+    return finnhub_cost(query_data)
 
 
 moex_symbol_by_name = query_function_factory(MoexSymbolByName)
@@ -116,8 +116,8 @@ moex_queries = {
     QueryType.CURRENCY: MoexCurrency
 }
 
-alphavantage_queries = {
-    QueryType.CURRENT_COST: AlphaVantageCost,
+foreign_queries = {
+    QueryType.CURRENT_COST: FinnhubCost,
     QueryType.CURRENCY: AlphaVantageCurrency
 }
 
@@ -160,7 +160,7 @@ def async_current_cost_and_currency(query_data_list, query_types):
 
     # try alphavantage for not found
     list_of_futures = start_requests(not_found_data, query_types,
-                                     alphavantage_queries)
+                                     foreign_queries)
     collect_results(list_of_futures, not_found_data)
 
 

@@ -3,24 +3,22 @@ import requests
 import config
 
 
-class AlphaVantageCost(APIQuery):
+class FinnhubCost(APIQuery):
     empty_return = None
 
     def set_report(self):
         self.report_list = [self.symbol]
 
     def get_server_response(self):
-        query = "https://www.alphavantage.co/query"
-        params = {"function": "TIME_SERIES_INTRADAY", "symbol": self.symbol,
-                  "interval": "1min", "apikey": config.API_KEY_ALPHAVANTAGE}
+        query = "https://finnhub.io/api/v1/quote"
+        params = {"symbol": self.symbol, "token": config.API_KEY_FINNHUB}
         self.response = self.session.get(query, params=params)
 
     def process_json(self, resp):
-        if "Error Message" in resp.keys():
+        result = resp["c"]
+        if int(result) == 0:
             return None
-        last_cost_update_key = list(resp["Time Series (1min)"].keys())[0]
-        result = resp["Time Series (1min)"][last_cost_update_key]["4. close"]
-        return result, last_cost_update_key
+        return result, "real time"
 
 
 class AlphaVantageSymbolByName(APIQuery):
