@@ -79,6 +79,4 @@ class AlphaVantageCurrency(APIQuery):
         self.response = self.session.get(query, params=params)
 
     def process_json(self, resp):
-        if "Currency" not in resp.keys():
-            return None
         return resp["Currency"]

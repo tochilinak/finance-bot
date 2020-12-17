@@ -122,8 +122,7 @@ foreign_queries = {
 }
 
 
-def start_requests(query_data_list, query_types, type_dict):
-    session = FuturesSession()
+def start_requests(session, query_data_list, query_types, type_dict):
     list_of_futures = []
     for query_data_id, query_data in enumerate(query_data_list):
         for query_type in query_types:
@@ -135,33 +134,30 @@ def start_requests(query_data_list, query_types, type_dict):
             query.get_server_response()
             query.response.attached_to = query
             list_of_futures.append(query.response)
+            query_data.result[query_type] = query.empty_return
 
     return list_of_futures
 
 
 def collect_results(list_of_futures, query_data_list):
-    for future in as_completed(list_of_futures):
+    for future in list_of_futures:
         query = future.attached_to
         query.response = future.result()
+        result = query.get_result()
         query_data = query_data_list[query.query_data_id]
-        query_data.result[query.query_type] = query.get_result()
+        print(result, query.empty_return)
+        if result != query.empty_return:
+            query_data.result[query.query_type] = result
+            print("here")
 
 
 def async_current_cost_and_currency(query_data_list, query_types):
-    # first try moex requests
-    list_of_futures = start_requests(query_data_list, query_types, moex_queries)
-    collect_results(list_of_futures, query_data_list)
-
-    not_found_data = []
-    for query_data in query_data_list:
-        if any(query_data.result[x] == moex_queries[x].empty_return
-               for x in query_types if not x == QueryType.PERIOD_COST):
-            not_found_data.append(query_data)
-
-    # try alphavantage for not found
-    list_of_futures = start_requests(not_found_data, query_types,
-                                     foreign_queries)
-    collect_results(list_of_futures, not_found_data)
+    with FuturesSession() as session:
+        list_of_futures = start_requests(session, query_data_list,
+                                         query_types, foreign_queries)
+        list_of_futures += start_requests(session, query_data_list,
+                                          query_types, moex_queries)
+        collect_results(list_of_futures, query_data_list)
 
 
 def start_period_cost(query_data_list):
@@ -186,6 +182,3 @@ def async_request(query_data_list, query_types):
 
     for thread in threads:
         thread.join()
-
-    for query_data in query_data_list:
-        print(query_data.result)
