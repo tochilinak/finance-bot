@@ -12,8 +12,8 @@ def handle_operation(update: Update, context: CallbackContext):
     if not match(operation_info, text):
         update.message.reply_text(
             "Enter information about the operation after command\n"
-            "Format: ticker, number, date(YYYY-MM-DD)\n"
-            "Example: GOOGL, 7, 20017-10-13\n"
+            "Format: /operation_command ticker, number, date(YYYY-MM-DD)\n"
+            "Example: /buy GOOGL, 7, 2017-10-13\n"
         )
         return
 
