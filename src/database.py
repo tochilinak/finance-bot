@@ -34,6 +34,7 @@ class Operations(Base):
     company_symbol = Column(String)
     count_of_stocks = Column(Integer)
     price = Column(Integer)
+    currency = Column(String)
     date = Column(String)
     operation_type = Column(Integer)
 
@@ -92,7 +93,7 @@ def delete_users_ticker(telegram_address, symbol):
     session.commit()
 
 
-def add_operation(telegram_address, symbol, count, price, date,
+def add_operation(telegram_address, symbol, count, price, currency, date,
                   operation_type):
     """Add operation to the table.
 
@@ -107,8 +108,8 @@ def add_operation(telegram_address, symbol, count, price, date,
     current_operation = Operations(telegram_address=telegram_address,
                                    company_symbol=symbol,
                                    count_of_stocks=count, price=price,
-                                   date=date, operation_type=operation_type.
-                                   value)
+                                   currency=currency, date=date,
+                                   operation_type=operation_type.value)
 
     session = sessionmaker(bind=engine)()
     session.add(current_operation)
@@ -138,7 +139,7 @@ def get_list_of_operations(telegram_address):
     q = session.query(Operations).filter(Operations.telegram_address
                                          == telegram_address)
     content = [[x.id, x.telegram_address, x.company_symbol,
-                x.count_of_stocks, x.price, x.date, x.operation_type]
+                x.count_of_stocks, x.price, x.currency, x.date, x.operation_type]
                for x in q]
     with open("out.csv", "w") as file:
         writer = csv.writer(file)
