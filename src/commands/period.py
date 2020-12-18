@@ -84,9 +84,9 @@ class PeriodGetter:
                 return PeriodGetter.ask_period(update)
             else:
                 if create_custom_period(context, text):
-                    return self.callback(context)
+                    return self.callback(update, context)
                 if create_some_days_period(context, text):
-                    return self.callback(context)
+                    return self.callback(update, context)
                 return PeriodGetter.ask_period(update)
 
         return res
@@ -105,7 +105,7 @@ class PeriodGetter:
         def res(update: Update, context: CallbackContext):
             """Reaction to /last_update."""
             context.user_data["period"] = Period("lu")
-            return self.callback(context)
+            return self.callback(update, context)
 
         return res
 
@@ -128,7 +128,7 @@ class PeriodGetter:
         def res(update: Update, context: CallbackContext):
             text = update.message.text
             if create_custom_period(context, text):
-                return self.callback(context)
+                return self.callback(update, context)
 
             update.message.reply_text(
                 "Try again, format 'YYYY-MM-DD YYYY-MM-DD'"
@@ -156,10 +156,10 @@ class PeriodGetter:
         def res(update: Update, context: CallbackContext):
             text = update.message.text
             if create_some_days_period(context, text):
-                return self.callback(context)
+                return self.callback(update, context)
             if is_number(text):
                 create_some_days_period(context, text + " days")
-                return self.callback(context)
+                return self.callback(update, context)
 
             update.message.reply_text(
                 "Try again, enter number of days"

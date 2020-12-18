@@ -15,13 +15,16 @@ from database import list_users_tickers as tickers_list
 from commands.basic import default_fallbacks, default_map_to_parent
 from commands.bot_filters import simple_text_filter
 from commands.price.current_price import current_price
-from commands.price.custom_price import custom, give_custom_price
-from commands.price.days import days, give_days_price
-from commands.period import PeriodGetter, Period
+from commands.price.custom_price import give_custom_price
+from commands.period import PeriodGetter
 
 
-def give_price(context: CallbackContext):
-    print(context.user_data["periods"].period_type)
+def give_price(update: Update, context: CallbackContext):
+    period = context.user_data["period"]
+    if period.period_type == "lu":
+        return current_price(update, context)
+    if period.period_type == "cd":
+        return give_custom_price(update, context)
     return ConversationHandler.END
 
 
