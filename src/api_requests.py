@@ -7,7 +7,7 @@ from enum import Enum, auto
 from requests_futures.sessions import FuturesSession
 import itertools as it
 import threading
-from concurrent.futures import as_completed
+import yfinance
 
 
 class QueryType(Enum):
@@ -67,8 +67,11 @@ def get_period_data_of_cost_moex(start, end, symbol):
                                                          for x in resp]]
 
 
-get_period_data_of_cost_alphavantage = query_function_factory(
-                                        AlphaVantagePeriodDataOfCost)
+def get_period_data_of_cost_yahoo(start, end, symbol):
+    company = yfinance.Ticker(symbol)
+    res = company.history(start=start, end=end)["Close"]
+    dates = [x.to_pydatetime() for x in res.index]
+    return dates, list(res)
 
 
 def get_period_data_of_cost(start, end, symbol):
@@ -79,13 +82,12 @@ def get_period_data_of_cost(start, end, symbol):
     :param symbol: symbol of the company; type - string.
     :return: list with dates as datetime objects, list with costs as floats.
     """
-    query_data = QueryData(start_date=start, end_date=end, symbol=symbol)
     result_moex = get_period_data_of_cost_moex(start, end, symbol)
 
     if len(result_moex[0]):
         return result_moex
 
-    return get_period_data_of_cost_alphavantage(query_data)
+    return get_period_data_of_cost_yahoo(start, end, symbol)
 
 
 def get_period_data_of_cost_query_data(query_data):
