@@ -64,11 +64,10 @@ def give_custom_price(update: Update, context: CallbackContext):
                        title=f"Prices from {start_date} to {end_date}"
                        )
 
-        img = open(PLOT_FILENAME, 'rb')
-
-        context.bot.send_photo(
-            chat_id=update.message.chat_id,
-            photo=img
-        )
+        with open(PLOT_FILENAME, 'rb') as img:
+            context.bot.send_photo(
+                chat_id=update.message.chat_id,
+                photo=img
+            )
 
     return ConversationHandler.END
