@@ -48,6 +48,7 @@ def is_number(text: str):
 
 class PeriodGetter:
     """Class for writing Period in user data."""
+
     def __init__(self, callback, map_to_parent):
         """
         Create Getter.
@@ -76,6 +77,7 @@ class PeriodGetter:
 
     def start_getting_period(self):
         """Start getting if it is not specified in message"""
+
         def res(update: Update, context: CallbackContext):
             text = update.message.text
             if text == '':
@@ -86,6 +88,7 @@ class PeriodGetter:
                 if create_some_days_period(context, text):
                     return self.callback(context)
                 return PeriodGetter.ask_period(update)
+
         return res
 
     @staticmethod
@@ -167,26 +170,26 @@ class PeriodGetter:
 
     def independent_handlers(self):
         return [
+            CommandHandler("periods", PeriodGetter.periods),
             CommandHandler("days", PeriodGetter.days),
             CommandHandler("custom", PeriodGetter.custom),
-            CommandHandler("last_update", self.last_update),
-            MessageHandler(some_days_filter, self.get_number_of_days),
-            MessageHandler(se_dates_filter, self.get_custom_period)
+            CommandHandler("last_update", self.last_update()),
+            MessageHandler(some_days_filter, self.get_number_of_days()),
+            MessageHandler(se_dates_filter, self.get_custom_period())
         ]
 
     def get_period_handler(self):
         return ConversationHandler(
-            entry_points=self.independent_handlers,
-            states={"period": [
-                *self.independent_handlers,
-                CommandHandler("periods", PeriodGetter.periods)],
-                "get_custom_period": [
-                    MessageHandler(simple_text_filter,
-                                   self.get_custom_period)],
-                "get_number_of_days": [
-                    MessageHandler(simple_text_filter, self.get_number_of_days)
-                ]
-            },
+            entry_points=self.independent_handlers(),
+            states={"period": self.independent_handlers(),
+                    "get_custom_period": [
+                        MessageHandler(simple_text_filter,
+                                       self.get_custom_period())],
+                    "get_number_of_days": [
+                        MessageHandler(simple_text_filter,
+                                       self.get_number_of_days())
+                    ]
+                    },
             fallbacks=default_fallbacks,
             map_to_parent=self.map_to_parent
         )
