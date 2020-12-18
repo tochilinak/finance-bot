@@ -76,7 +76,7 @@ class PeriodGetter:
         return "period"
 
     def start_getting_period(self):
-        """Start getting if it is not specified in message"""
+        """Start getting period if it is not specified in message."""
 
         def res(update: Update, context: CallbackContext):
             text = update.message.text
@@ -84,8 +84,10 @@ class PeriodGetter:
                 return PeriodGetter.ask_period(update)
             else:
                 if PeriodGetter.create_custom_period(context, text):
+                    # now period is in user_data["period"] and we can go
                     return self.callback(update, context)
                 if PeriodGetter.create_some_days_period(context, text):
+                    # now period is in user_data["period"] and we can go
                     return self.callback(update, context)
                 return PeriodGetter.ask_period(update)
 
@@ -169,6 +171,7 @@ class PeriodGetter:
         return res
 
     def independent_handlers(self):
+        """Handlers that can be entry point."""
         return [
             CommandHandler("periods", PeriodGetter.periods),
             CommandHandler("days", PeriodGetter.days),
