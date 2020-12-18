@@ -1,11 +1,15 @@
 from telegram import Update
 from telegram.ext import (
     CallbackContext,
-    ConversationHandler
+    ConversationHandler,
+    CommandHandler,
+    MessageHandler
 )
 from re import match
 from datetime import datetime, timedelta
-from commands.bot_filters import se_dates, some_days
+from commands.basic import default_fallbacks
+from commands.bot_filters import (se_dates, some_days, se_dates_filter,
+                                  some_days_filter, simple_text_filter)
 
 
 class Period:
@@ -135,9 +139,25 @@ def get_number_of_days(update: Update, context: CallbackContext):
     return "get_number_of_days"
 
 
+independent_handlers = [
+    CommandHandler("days", days),
+    CommandHandler("custom", custom),
+    CommandHandler("last_update", last_update),
+    MessageHandler(some_days_filter, get_number_of_days),
+    MessageHandler(se_dates_filter, get_custom_period)
+]
+
 get_period_handler = ConversationHandler(
-    entry_points=[],
-    states={"period": []},
-    fallbacks=[],
-    map_to_parent=None
+    entry_points=independent_handlers,
+    states={"period": [
+        *independent_handlers, CommandHandler("periods", periods)],
+            "get_custom_period": [
+                MessageHandler(simple_text_filter, get_custom_period)],
+            "get_number_of_days": [
+                MessageHandler(simple_text_filter, get_number_of_days)
+            ]
+    },
+    fallbacks=default_fallbacks,
+    map_to_parent={"got_period": "got_period",
+                   ConversationHandler.END: ConversationHandler.END}
 )
