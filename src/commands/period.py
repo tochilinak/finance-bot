@@ -21,6 +21,7 @@ class Period:
 
 
 def create_custom_period(context: CallbackContext, text: str):
+    """Try to write information about custom period to user data."""
     if match(se_dates, text):
         context.user_data["period"] = Period("cd", text)
         return True
@@ -28,6 +29,7 @@ def create_custom_period(context: CallbackContext, text: str):
 
 
 def create_some_days_period(context: CallbackContext, text: str):
+    """Try to write information about 'n days' period to user data."""
     if match(some_days, text):
         numebr_of_days = text.split(' ')[0]
         today = datetime.now().date()
@@ -44,120 +46,147 @@ def is_number(text: str):
     return False
 
 
-def ask_period(update: Update):
-    """Ask about period (send some messages)."""
-    update.message.reply_text(
-        "For what period are you interested in the price?"
-    )
-    update.message.reply_text(
-        "You can get information about entering "
-        "a period with the /periods command"
-    )
-    return "period"
+class PeriodGetter:
+    """Class for writing Period in user data."""
+    def __init__(self, callback, map_to_parent):
+        """
+        Create Getter.
+        :param callback: function, that will be called after getting a period.
+        It can be 'return "got_period"' if you need to go to next state of
+        conversation or function that gives user information and end the
+        conversation.
+        :param map_to_parent: map to parent conversation.
+        Example: {"got_period": "got_period", "back_to_ticker": "ticker",
+        "END": ConversationHandler.END}
+        """
+        self.callback = callback
+        self.map_to_parent = map_to_parent
 
+    @staticmethod
+    def ask_period(update: Update):
+        """Ask about period (send some messages)."""
+        update.message.reply_text(
+            "For what period are you interested in the price?"
+        )
+        update.message.reply_text(
+            "You can get information about entering "
+            "a period with the /periods command"
+        )
+        return "period"
 
-def start_getting(update: Update, context: CallbackContext):
-    text = update.message.text
-    if text is None:
-        return ask_period(update)
-    else:
-        if create_custom_period(context, text):
-            return "got_period"
-        if create_some_days_period(context, text):
-            return "got_period"
-        return ask_period(update)
+    def start_getting_period(self):
+        """Start getting if it is not specified in message"""
+        def res(update: Update, context: CallbackContext):
+            text = update.message.text
+            if text == '':
+                return PeriodGetter.ask_period(update)
+            else:
+                if create_custom_period(context, text):
+                    return self.callback(context)
+                if create_some_days_period(context, text):
+                    return self.callback(context)
+                return PeriodGetter.ask_period(update)
+        return res
 
+    @staticmethod
+    def periods(update: Update, context: CallbackContext):
+        """Give user information about entering a period."""
+        update.message.reply_text(
+            "/last_update - get the most current prices available\n"
+            "/custom - get prices for a specified period of time\n"
+            "/days - get price for last n days\n"
+        )
+        return "period"
 
-def periods(update: Update, context: CallbackContext):
-    """Give user information about entering a period."""
-    update.message.reply_text(
-        "/last_update - get the most current prices available\n"
-        "/custom - get prices for a specified period of time\n"
-        "/days - get price for last n days\n"
-    )
-    return "period"
+    def last_update(self):
+        def res(update: Update, context: CallbackContext):
+            """Reaction to /last_update."""
+            context.user_data["period"] = Period("lu")
+            return self.callback(context)
 
+        return res
 
-def last_update(update: Update, context: CallbackContext):
-    """Reaction to /last_update."""
-    context.user_data["period"] = Period("lu")
-    return "got_period"
+    @staticmethod
+    def custom(update: Update, context: CallbackContext):
+        """Reaction to /custom. Ask dates for custom request."""
 
+        update.message.reply_text(
+            "Enter start and end date, format 'YYYY-MM-DD YYYY-MM-DD'"
+        )
 
-def custom(update: Update, context: CallbackContext):
-    """Reaction to /custom. Ask dates for custom request."""
+        update.message.reply_text(
+            "You can just enter two dates after the ticker message next time "
+            "(and not use /custom)"
+        )
 
-    update.message.reply_text(
-        "Enter start and end date, format 'YYYY-MM-DD YYYY-MM-DD'"
-    )
+        return "get_custom_period"
 
-    update.message.reply_text(
-        "You can just enter two dates after the ticker message next time "
-        "(and not use /custom)"
-    )
+    def get_custom_period(self):
+        def res(update: Update, context: CallbackContext):
+            text = update.message.text
+            if create_custom_period(context, text):
+                return self.callback(context)
 
-    return "get_custom_period"
+            update.message.reply_text(
+                "Try again, format 'YYYY-MM-DD YYYY-MM-DD'"
+            )
+            return "get_custom_period"
 
+        return res
 
-def get_custom_period(update: Update, context: CallbackContext):
-    text = update.message.text
-    if create_custom_period(context, text):
-        return "got_period"
+    @staticmethod
+    def days(update: Update, context: CallbackContext):
+        """Reaction to /days. Ask number of days for request."""
 
-    update.message.reply_text(
-        "Try again, format 'YYYY-MM-DD YYYY-MM-DD'"
-    )
-    return "get_custom_period"
+        update.message.reply_text(
+            "Enter number of days"
+        )
 
+        update.message.reply_text(
+            "You can just enter 'n days' after the ticker message next time "
+            "(and not use /days)"
+        )
 
-def days(update: Update, context: CallbackContext):
-    """Reaction to /days. Ask number of days for request."""
+        return "get_number_of_days"
 
-    update.message.reply_text(
-        "Enter number of days"
-    )
+    def get_number_of_days(self):
+        def res(update: Update, context: CallbackContext):
+            text = update.message.text
+            if create_some_days_period(context, text):
+                return self.callback(context)
+            if is_number(text):
+                create_some_days_period(context, text + " days")
+                return self.callback(context)
 
-    update.message.reply_text(
-        "You can just enter 'n days' after the ticker message next time "
-        "(and not use /days)"
-    )
+            update.message.reply_text(
+                "Try again, enter number of days"
+            )
+            return "get_number_of_days"
 
-    return "get_number_of_days"
+        return res
 
+    def independent_handlers(self):
+        return [
+            CommandHandler("days", PeriodGetter.days),
+            CommandHandler("custom", PeriodGetter.custom),
+            CommandHandler("last_update", self.last_update),
+            MessageHandler(some_days_filter, self.get_number_of_days),
+            MessageHandler(se_dates_filter, self.get_custom_period)
+        ]
 
-def get_number_of_days(update: Update, context: CallbackContext):
-    text = update.message.text
-    if create_some_days_period(context, text):
-        return "got_period"
-    if is_number(text):
-        create_some_days_period(context, text + " days")
-        return "got_period"
-
-    update.message.reply_text(
-        "Try again, enter number of days"
-    )
-    return "get_number_of_days"
-
-
-independent_handlers = [
-    CommandHandler("days", days),
-    CommandHandler("custom", custom),
-    CommandHandler("last_update", last_update),
-    MessageHandler(some_days_filter, get_number_of_days),
-    MessageHandler(se_dates_filter, get_custom_period)
-]
-
-get_period_handler = ConversationHandler(
-    entry_points=independent_handlers,
-    states={"period": [
-        *independent_handlers, CommandHandler("periods", periods)],
-            "get_custom_period": [
-                MessageHandler(simple_text_filter, get_custom_period)],
-            "get_number_of_days": [
-                MessageHandler(simple_text_filter, get_number_of_days)
-            ]
-    },
-    fallbacks=default_fallbacks,
-    map_to_parent={"got_period": "got_period",
-                   ConversationHandler.END: ConversationHandler.END}
-)
+    def get_period_handler(self):
+        return ConversationHandler(
+            entry_points=self.independent_handlers,
+            states={"period": [
+                *self.independent_handlers,
+                CommandHandler("periods", PeriodGetter.periods)],
+                "get_custom_period": [
+                    MessageHandler(simple_text_filter,
+                                   self.get_custom_period)],
+                "get_number_of_days": [
+                    MessageHandler(simple_text_filter, self.get_number_of_days)
+                ]
+            },
+            fallbacks=default_fallbacks,
+            map_to_parent=self.map_to_parent
+        )
