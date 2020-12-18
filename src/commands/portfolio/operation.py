@@ -4,12 +4,12 @@ from telegram.ext import (
     CallbackContext
 )
 from re import match
-from commands.bot_filters import operation_info
+from commands.bot_filters import OPERATION_INFO
 
 
 def handle_operation(update: Update, context: CallbackContext):
     text: str = " ".join(context.args)
-    if not match(operation_info, text):
+    if not match(OPERATION_INFO, text):
         update.message.reply_text(
             "Enter information about the operation after command\n"
             "Format: /operation_command ticker, number, date(YYYY-MM-DD)\n"
@@ -18,7 +18,7 @@ def handle_operation(update: Update, context: CallbackContext):
         return
 
     ticker, number, date = text.split(", ")
-    if match(r'^/buy*', update.message.text):
+    if match(r'/buy*', update.message.text):
         pass
     else:
         pass
