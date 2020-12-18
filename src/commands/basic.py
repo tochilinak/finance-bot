@@ -45,3 +45,6 @@ default_fallbacks = [
     unknown_command_handler,
     unknown_text_handler
 ]
+
+# Create default map to parent
+default_map_to_parent = {ConversationHandler.END: ConversationHandler.END}
