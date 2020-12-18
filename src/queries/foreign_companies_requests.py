@@ -66,17 +66,18 @@ class AlphaVantagePeriodDataOfCost(APIQuery):
         return res
 
 
-class AlphaVantageCurrency(APIQuery):
+class FinnhubCurrency(APIQuery):
     empty_return = None
 
     def set_report(self):
         self.report_list = [self.symbol]
 
     def get_server_response(self):
-        query = "https://www.alphavantage.co/query"
-        params = {"function": "OVERVIEW", "symbol": self.symbol, "apikey":
-                  config.API_KEY_ALPHAVANTAGE}
+        query = "https://finnhub.io/api/v1/stock/profile2"
+        params = {"symbol": self.symbol, "token": config.API_KEY_FINNHUB}
         self.response = self.session.get(query, params=params)
 
     def process_json(self, resp):
-        return resp["Currency"]
+        if len(resp.keys()) == 0:
+            return None
+        return resp["currency"]

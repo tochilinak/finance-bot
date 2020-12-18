@@ -94,7 +94,7 @@ def get_period_data_of_cost_query_data(query_data):
     query_data.result[QueryType.PERIOD_COST] = result
 
 
-get_currency_alphavantage = query_function_factory(AlphaVantageCurrency)
+get_currency_finnhub = query_function_factory(FinnhubCurrency)
 get_currency_moex = query_function_factory(MoexCurrency)
 
 
@@ -107,7 +107,7 @@ def get_currency(symbol):
     query_data = QueryData(symbol=symbol)
     result_moex = get_currency_moex(query_data)
     if result_moex is None:
-        return get_currency_alphavantage(query_data)
+        return get_currency_finnhub(query_data)
     return result_moex
 
 
@@ -118,7 +118,7 @@ moex_queries = {
 
 foreign_queries = {
     QueryType.CURRENT_COST: FinnhubCost,
-    QueryType.CURRENCY: AlphaVantageCurrency
+    QueryType.CURRENCY: FinnhubCurrency
 }
 
 
@@ -140,24 +140,25 @@ def start_requests(session, query_data_list, query_types, type_dict):
 
 
 def collect_results(list_of_futures, query_data_list):
-    for future in list_of_futures:
+    for i in range(len(list_of_futures)):
+        future = list_of_futures[i]
         query = future.attached_to
-        query.response = future.result()
-        result = query.get_result()
         query_data = query_data_list[query.query_data_id]
-        print(result, query.empty_return)
-        if result != query.empty_return:
-            query_data.result[query.query_type] = result
-            print("here")
+        if query_data.result[query.query_type] != query.empty_return:
+            future.cancel()
+            continue
+        query.response = future.result()
+        query_data.result[query.query_type] = query.get_result()
 
 
 def async_current_cost_and_currency(query_data_list, query_types):
     with FuturesSession() as session:
-        list_of_futures = start_requests(session, query_data_list,
-                                         query_types, foreign_queries)
-        list_of_futures += start_requests(session, query_data_list,
+        list_of_futures_moex = start_requests(session, query_data_list,
                                           query_types, moex_queries)
-        collect_results(list_of_futures, query_data_list)
+        list_of_futures_foreign = start_requests(session, query_data_list,
+                                                 query_types, foreign_queries)
+        collect_results(list_of_futures_moex, query_data_list)
+        collect_results(list_of_futures_foreign, query_data_list)
 
 
 def start_period_cost(query_data_list):
