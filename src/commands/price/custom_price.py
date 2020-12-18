@@ -5,7 +5,9 @@ from telegram.ext import (
 )
 from api_requests import get_period_data_of_cost, get_currency
 from graphics import draw_multiplot, PlotData
-from commands.price.price_base import PLOT_FILENAME
+
+
+PLOT_FILENAME = "plot.png"
 
 
 def give_custom_price(update: Update, context: CallbackContext):
