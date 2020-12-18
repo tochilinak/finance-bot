@@ -20,32 +20,6 @@ class Period:
         self.data = data
 
 
-def create_custom_period(context: CallbackContext, text: str):
-    """Try to write information about custom period to user data."""
-    if match(se_dates, text):
-        context.user_data["period"] = Period("cd", text)
-        return True
-    return False
-
-
-def create_some_days_period(context: CallbackContext, text: str):
-    """Try to write information about 'n days' period to user data."""
-    if match(some_days, text):
-        numebr_of_days = text.split(' ')[0]
-        today = datetime.now().date()
-        start_date = today - timedelta(days=int(numebr_of_days))
-        text = " ".join([str(start_date), str(today)])
-        context.user_data["period"] = Period("cd", text)
-        return True
-    return False
-
-
-def is_number(text: str):
-    if match(r"\d+$", text):
-        return True
-    return False
-
-
 class PeriodGetter:
     """Class for writing Period in user data."""
 
@@ -62,6 +36,32 @@ class PeriodGetter:
         """
         self.callback = callback
         self.map_to_parent = map_to_parent
+
+    @staticmethod
+    def create_custom_period(context: CallbackContext, text: str):
+        """Try to write information about custom period to user data."""
+        if match(se_dates, text):
+            context.user_data["period"] = Period("cd", text)
+            return True
+        return False
+
+    @staticmethod
+    def create_some_days_period(context: CallbackContext, text: str):
+        """Try to write information about 'n days' period to user data."""
+        if match(some_days, text):
+            numebr_of_days = text.split(' ')[0]
+            today = datetime.now().date()
+            start_date = today - timedelta(days=int(numebr_of_days))
+            text = " ".join([str(start_date), str(today)])
+            context.user_data["period"] = Period("cd", text)
+            return True
+        return False
+
+    @staticmethod
+    def is_number(text: str):
+        if match(r"\d+$", text):
+            return True
+        return False
 
     @staticmethod
     def ask_period(update: Update):
@@ -83,9 +83,9 @@ class PeriodGetter:
             if text == '':
                 return PeriodGetter.ask_period(update)
             else:
-                if create_custom_period(context, text):
+                if PeriodGetter.create_custom_period(context, text):
                     return self.callback(update, context)
-                if create_some_days_period(context, text):
+                if PeriodGetter.create_some_days_period(context, text):
                     return self.callback(update, context)
                 return PeriodGetter.ask_period(update)
 
@@ -127,7 +127,7 @@ class PeriodGetter:
     def get_custom_period(self):
         def res(update: Update, context: CallbackContext):
             text = update.message.text
-            if create_custom_period(context, text):
+            if PeriodGetter.create_custom_period(context, text):
                 return self.callback(update, context)
 
             update.message.reply_text(
@@ -155,10 +155,10 @@ class PeriodGetter:
     def get_number_of_days(self):
         def res(update: Update, context: CallbackContext):
             text = update.message.text
-            if create_some_days_period(context, text):
+            if PeriodGetter.create_some_days_period(context, text):
                 return self.callback(update, context)
-            if is_number(text):
-                create_some_days_period(context, text + " days")
+            if PeriodGetter.is_number(text):
+                PeriodGetter.create_some_days_period(context, text + " days")
                 return self.callback(update, context)
 
             update.message.reply_text(
