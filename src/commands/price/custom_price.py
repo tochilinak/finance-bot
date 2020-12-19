@@ -5,7 +5,8 @@ from telegram.ext import (
 )
 from re import fullmatch
 from commands.bot_filters import se_dates
-from api_requests import get_period_data_of_cost, get_currency
+from api_requests import async_request, QueryType
+from queries.general import QueryData
 from graphics import draw_multiplot, PlotData
 from commands.price.price_base import PLOT_FILENAME
 
@@ -23,6 +24,13 @@ def custom(update: Update, context: CallbackContext):
     )
 
     return "get_custom_period"
+
+
+def get_results(tickers, start_date, end_date):
+    query_data_list = [QueryData(symbol=x.upper(), start_date = start_date,
+                       end_date=end_date) for x in tickers]
+    async_request(query_data_list, [QueryType.PERIOD_COST, QueryType.CURRENCY])
+    return query_data_list
 
 
 def give_custom_price(update: Update, context: CallbackContext):
@@ -43,16 +51,17 @@ def give_custom_price(update: Update, context: CallbackContext):
 
     tickers = context.user_data["tickers"]
     list_plot_data = []
-    for ticker in tickers:
-        ticker = ticker.upper()
-        dates, values = get_period_data_of_cost(start_date, end_date, ticker)
+    results = get_results(tickers, start_date, end_date)
+    for query_data in results:
+        ticker = query_data.symbol
+        dates, values = query_data.result[QueryType.PERIOD_COST]
 
         if not values:
             update.message.reply_text(
                 f"I have no information about {ticker}"
             )
         else:
-            currency = get_currency(ticker)
+            currency = query_data.result[QueryType.CURRENCY]
             title = f"{ticker} stock price"
             plot_data = PlotData(dates, values, title, currency)
             list_plot_data.append(plot_data)
