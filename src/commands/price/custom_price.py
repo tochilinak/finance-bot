@@ -3,27 +3,13 @@ from telegram.ext import (
     CallbackContext,
     ConversationHandler
 )
-from re import fullmatch
-from commands.bot_filters import se_dates
+
 from api_requests import async_request, QueryType
 from queries.general import QueryData
 from graphics import draw_multiplot, PlotData
-from commands.price.price_base import PLOT_FILENAME
 
 
-def custom(update: Update, context: CallbackContext):
-    """Ask dates for custom request."""
-
-    update.message.reply_text(
-        "Enter start and end date, format 'YYYY-MM-DD YYYY-MM-DD'"
-    )
-
-    update.message.reply_text(
-        "You can just enter two dates after the ticker message next time "
-        "(and not use /custom)"
-    )
-
-    return "get_custom_period"
+PLOT_FILENAME = "plot.png"
 
 
 def get_results(tickers, start_date, end_date):
@@ -36,18 +22,8 @@ def get_results(tickers, start_date, end_date):
 def give_custom_price(update: Update, context: CallbackContext):
     """Get dates from user. Draw and send plot"""
 
-    text = update.message.text
-
-    if fullmatch(se_dates, text):
-        start_date, end_date = text.split(' ')
-    else:
-        update.message.reply_text(
-            "Dates entered incorrectly\n"
-            "Format: YYYY-MM-DD YYYY-MM-DD\n"
-            "Example: 2020-01-01 2020-11-01\n"
-            "Try again or /cancel"
-        )
-        return "get_custom_period"
+    period = context.user_data["period"]
+    start_date, end_date = period.data.split(' ')
 
     tickers = context.user_data["tickers"]
     list_plot_data = []
@@ -73,11 +49,10 @@ def give_custom_price(update: Update, context: CallbackContext):
                        title=f"Prices from {start_date} to {end_date}"
                        )
 
-        img = open(PLOT_FILENAME, 'rb')
-
-        context.bot.send_photo(
-            chat_id=update.message.chat_id,
-            photo=img
-        )
+        with open(PLOT_FILENAME, 'rb') as img:
+            context.bot.send_photo(
+                chat_id=update.message.chat_id,
+                photo=img
+            )
 
     return ConversationHandler.END
