@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 from enum import IntEnum
+from api_requests import get_currency, current_cost
 import csv
 
 
@@ -85,7 +86,7 @@ def delete_users_ticker(telegram_address, symbol):
     session = sessionmaker(bind=engine)()
     # SQLAlchemy Query object (contains db response)
     q = session.query(Users).filter(Users.telegram_address ==
-                                    telegram_address,
+                                        telegram_address,
                                     Users.company_symbol ==
                                     symbol).first()
     if q is not None:
@@ -93,18 +94,18 @@ def delete_users_ticker(telegram_address, symbol):
     session.commit()
 
 
-def add_operation(telegram_address, symbol, count, price, currency, date,
-                  operation_type):
+def add_operation(telegram_address, symbol, count, date, operation_type):
     """Add operation to the table.
 
     Types of parameters:
     :param telegram_address: Integer;
     :param symbol: String;
     :param count: Integer;
-    :param price: Integer;
     :param date: String;
     :param operation_type: enum operation_type object.
     """
+    price = current_cost(symbol)
+    currency = get_currency(symbol)
     current_operation = Operations(telegram_address=telegram_address,
                                    company_symbol=symbol,
                                    count_of_stocks=count, price=price,
