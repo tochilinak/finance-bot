@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 from enum import IntEnum
-from api_requests import get_currency, current_cost
+from api_requests import get_currency, current_cost, get_period_data_of_cost
 import csv
 
 
@@ -85,10 +85,8 @@ def delete_users_ticker(telegram_address, symbol):
     """
     session = sessionmaker(bind=engine)()
     # SQLAlchemy Query object (contains db response)
-    q = session.query(Users).filter(Users.telegram_address ==
-                                        telegram_address,
-                                    Users.company_symbol ==
-                                    symbol).first()
+    q = session.query(Users).filter(Users.telegram_address == telegram_address,
+                                    Users.company_symbol == symbol).first()
     if q is not None:
         session.delete(q)
     session.commit()
@@ -104,7 +102,7 @@ def add_operation(telegram_address, symbol, count, date, operation_type):
     :param date: String;
     :param operation_type: enum operation_type object.
     """
-    price = current_cost(symbol)
+    price = get_period_data_of_cost(date, date, symbol)[1][0]
     currency = get_currency(symbol)
     current_operation = Operations(telegram_address=telegram_address,
                                    company_symbol=symbol,
@@ -146,3 +144,27 @@ def get_list_of_operations(telegram_address):
         writer = csv.writer(file)
         writer.writerows([headers] + content)
     session.commit()
+
+
+def get_current_cost(telegram_address):
+    session = sessionmaker(bind=engine)()
+    user_info = session.query(Operations).filter(Operations.telegram_address
+                                                 == telegram_address)
+    companies_tickers = [x.company_symbol for x in user_info]
+    balance = dict.fromkeys(companies_tickers, 0)
+    count_of_stocks = dict.fromkeys(companies_tickers, 0)
+    for record in user_info:
+        if record.operation_type == OperationType.BUY_OPERATION:
+            balance[record.company_symbol] -= record.price * record.count_of_stocks
+            count_of_stocks[record.company_symbol] += record.count_of_stocks
+        else:
+            balance[record.company_symbol] += record.price * record.count_of_stocks
+            count_of_stocks[record.company_symbol] -= record.count_of_stocks
+    companies_info = dict.fromkeys(companies_tickers)
+    for ticker in companies_tickers:
+        ticker_stocks_info = current_cost(ticker)
+        current_stock_cost = ticker_stocks_info[0] * count_of_stocks[ticker]
+        last_update = ticker_stocks_info[1]
+        companies_info[ticker] = [current_stock_cost, current_stock_cost + balance[ticker], last_update]
+    session.commit()
+    return companies_info
