@@ -9,6 +9,9 @@ se_dates_filter = Filters.regex(se_dates)
 some_days = r'^\d+ days$'
 some_days_filter = Filters.regex(some_days)
 
+# Pattern for operation info
+OPERATION_INFO = r'^\w+, \d+, \d{4}-\d{2}-\d{2}$'
+
 simple_text_filter = Filters.text & ~Filters.command
 
 command_filter = Filters.command
