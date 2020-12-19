@@ -20,7 +20,7 @@ class AlphaVantageCost(APIQuery):
         if "Error Message" in resp.keys():
             return None
         last_cost_update_key = list(resp["Time Series (1min)"].keys())[0]
-        result = resp["Time Series (1min)"][last_cost_update_key]["4. close"]
+        result = float(resp["Time Series (1min)"][last_cost_update_key]["4. close"])
         return result, last_cost_update_key
 
 
