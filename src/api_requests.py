@@ -8,6 +8,7 @@ from requests_futures.sessions import FuturesSession
 import itertools as it
 import threading
 import yfinance
+import datetime
 
 
 class QueryType(Enum):
@@ -63,7 +64,7 @@ def symbol_by_name(name, result_size=5):
 
 def get_period_data_of_cost_moex(start, end, symbol):
     resp = apimoex.get_board_history(requests.Session(), symbol, start, end)
-    return [[parse_date(x['TRADEDATE']) for x in resp], [float(x['CLOSE'])
+    return [[datetime.datetime.strptime(x['TRADEDATE'], "%Y-%m-%d") for x in resp], [float(x['CLOSE'])
                                                          for x in resp]]
 
 
