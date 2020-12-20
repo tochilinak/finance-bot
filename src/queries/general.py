@@ -67,13 +67,3 @@ def query_function_factory(QueryClass):
         query_object.get_server_response()
         return query_object.get_result()
     return func
-
-
-def parse_date(date):
-    """Parse string with date to datetime object.
-
-    :param date: type - string.
-    :return: type - datetime.
-    """
-    date_list = list(map(int, date.split('-')))
-    return datetime.datetime(date_list[0], date_list[1], date_list[2])
