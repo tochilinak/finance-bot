@@ -3,25 +3,36 @@ from telegram.ext import (
     CallbackContext,
     ConversationHandler
 )
-from api_requests import current_cost, get_currency
+from api_requests import async_request, QueryType
+from queries.general import QueryData
 
 
-def info_line(ticker: str):
+def info_line(query_data: QueryData):
     """Cretate string in format "ticker: price"."""
-    ticker = ticker.upper()
-    result = current_cost(ticker)
-    currency = get_currency(ticker)
+    ticker = query_data.symbol
+    cost = query_data.result[QueryType.CURRENT_COST]
+    currency = query_data.result[QueryType.CURRENCY]
+    last_update = None
 
-    if not result or not currency:
+    if not cost or not currency:
         price = "no information"
         currency = ""
     else:
-        price, last_update = result
+        price, last_update = cost
         price = str(price).replace(".", r"\.")
         last_update = last_update.replace("-", r"\-")
 
-    return r"*%s:* %s %s \(last updated: %s\)" % (ticker, price, currency,
-                                                  last_update)
+    result = r"*%s:* %s %s" % (ticker, price, currency)
+    if last_update:
+        result +=  " \(last updated: %s\)" % (last_update)
+
+    return result
+
+
+def get_results(tickers):
+    query_data_list = [QueryData(symbol=x.upper()) for x in tickers]
+    async_request(query_data_list, [QueryType.CURRENT_COST, QueryType.CURRENCY])
+    return query_data_list
 
 
 def current_price(update: Update, context: CallbackContext):
@@ -29,7 +40,8 @@ def current_price(update: Update, context: CallbackContext):
     tickers = context.user_data["tickers"]
 
     if tickers:
-        text = "\n".join([info_line(ticker) for ticker in tickers])
+        results = get_results(tickers)
+        text = "\n".join([info_line(res) for res in results])
     else:
         text = "Your list of companies of interest is empty"
 
