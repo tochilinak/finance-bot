@@ -6,12 +6,13 @@ from telegram.ext import (
 )
 from commands.basic import default_fallbacks, default_map_to_parent
 from commands.period import PeriodGetter
+from commands.portfolio.current_profit import current_profit
 
 
 def give_portfolio(update: Update, context: CallbackContext):
     period = context.user_data["period"]
     if period.period_type == "lu":
-        update.message.reply_text("lu")
+        return current_profit(update, context)
     if period.period_type == "cd":
         update.message.reply_text("cd")
     return ConversationHandler.END
