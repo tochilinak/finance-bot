@@ -233,20 +233,24 @@ def get_period_profit(begin_date, end_date, telegram_address):
                     Operations.date >= begin_date, Operations.date
                     <= end_date)).order_by(Operations.date)
     session.commit()
-    companies_stocks_period_cost = {x.company_symbol: get_period_data_of_cost
-                                    (begin_date, end_date, x.company_symbol)
-                                    for x in user_data}
-    if len(companies_stocks_period_cost) == 0:
+    companies_symbols = {x.company_symbol for x in user_data}
+    if len(companies_symbols) == 0:
         # User hadn't bought any stock by this period, so profit
         # is constant 0. Not interesting.
         return None
-    result = {x.currency: [[], []] for x in user_data}
-    # Make the Ox values by dates from one company's graphic.
-    dates_list = companies_stocks_period_cost[
-        list(companies_stocks_period_cost)[0]][0]
     # To make less api requests.
     currencies_for_companies = {x: get_currency(x) for x
-                                in companies_stocks_period_cost}
+                                in companies_symbols}
+    companies_stocks_period_cost = {x: get_period_data_of_cost
+                                    (begin_date, end_date, x)
+                                    for x in companies_symbols}
+    result = {x.currency: [[], []] for x in user_data}
+    # Make the Ox values by dates from union of Ox values from each company.
+    dates_set = set()
+    for symbol in companies_symbols:
+        dates_set = dates_set.union(set(companies_stocks_period_cost[symbol][0]))
+    dates_list = list(dates_set)
+    dates_list.sort()
 
     def get_cost_by_date(date_cost, symbol):
         """Get cost of stocks of a company bu current date.
