@@ -147,7 +147,7 @@ def get_list_of_operations(telegram_address):
     session.commit()
 
 
-def get_period_balance(user_data, end_date="9999-99-99"):
+def get_prefix_balance(user_data, end_date="9999-99-99"):
     """Get user's balance by a period contained in user_data.
 
     :param user_data: SQLAlchemy query object.
@@ -168,7 +168,7 @@ def get_period_balance(user_data, end_date="9999-99-99"):
     return balance
 
 
-def get_period_count_of_stocks(user_data, end_date="9999-99-99"):
+def get_prefix_count_of_stocks(user_data, end_date="9999-99-99"):
     """Get count of stocks from every company from a\
     period contained in user_data.
 
@@ -201,8 +201,8 @@ def get_current_profit(telegram_address):
                                                  == telegram_address)
     session.commit()
     companies_tickers = [x.company_symbol for x in user_data]
-    balance = get_period_balance(user_data)
-    count_of_stocks = get_period_count_of_stocks(user_data)
+    balance = get_prefix_balance(user_data)
+    count_of_stocks = get_prefix_count_of_stocks(user_data)
     companies_info = dict.fromkeys(companies_tickers)
     for ticker in companies_tickers:
         ticker_stocks_info = current_cost(ticker)
@@ -210,8 +210,7 @@ def get_current_profit(telegram_address):
         last_update = ticker_stocks_info[1]
         companies_info[ticker] = [current_stock_cost, current_stock_cost +
                                   balance[ticker], last_update]
-    currencies = [x.currency for x in user_data]
-    currencies_info = {x: [0, 0] for x in currencies}
+    currencies_info = {x.currency: [0, 0] for x in user_data}
     for ticker in companies_info:
         current_currency = get_currency(ticker)
         currencies_info[current_currency][0] += companies_info[ticker][0]
@@ -225,13 +224,10 @@ def get_period_profit(begin_date, end_date, telegram_address):
     :return: dict. {currency: list of datetime objects, list of user's profit}.
     """
     session = sessionmaker(bind=engine)()
-    user_data = session.query(Operations).filter(and_(Operations
-                                                      .telegram_address ==
-                                                      telegram_address,
-                                                      Operations.date >=
-                                                      begin_date, Operations.
-                                                      date <= end_date)).\
-        order_by(Operations.date)
+    user_data = session.query(Operations).\
+        filter(and_(Operations.telegram_address == telegram_address,
+                    Operations.date >= begin_date, Operations.date
+                    <= end_date)).order_by(Operations.date)
     session.commit()
     companies_stocks_period_cost = {x.company_symbol: get_period_data_of_cost
                                     (begin_date, end_date, x.company_symbol)
@@ -263,8 +259,8 @@ def get_period_profit(begin_date, end_date, telegram_address):
         return result_cost
 
     for date in dates_list:
-        current_balance = get_period_balance(user_data, date.isoformat()[:10])
-        current_count_of_stocks = get_period_count_of_stocks(user_data, date.
+        current_balance = get_prefix_balance(user_data, date.isoformat()[:10])
+        current_count_of_stocks = get_prefix_count_of_stocks(user_data, date.
                                                              isoformat()[:10])
         for x in result:
             result[x][0].append(date)
@@ -276,3 +272,5 @@ def get_period_profit(begin_date, end_date, telegram_address):
             result[current_currency][1][-1] +=\
                 current_count_of_stocks[ticker] * current_cost
     return result
+
+print(get_period_profit("2020-11-01", "2020-12-20", 123))
