@@ -3,3 +3,5 @@ requests
 apimoex
 matplotlib
 sqlalchemy
+requests_futures
+yfinance

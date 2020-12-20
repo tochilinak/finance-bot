@@ -107,7 +107,7 @@ def draw_plot(plot_data, image_filename):
 
 
 def choose_size(plot_num):
-    height = int(plot_num ** 0.5)
+    height = int(plot_num ** 0.5 + 0.5)
     width = (plot_num + height - 1) // height
     return height, width
 
