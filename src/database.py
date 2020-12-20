@@ -169,7 +169,6 @@ def get_period_count_of_stocks(user_data):
     return count_of_stocks
 
 
-
 def get_current_profit(telegram_address):
     session = sessionmaker(bind=engine)()
     user_data = session.query(Operations).filter(Operations.telegram_address
@@ -196,26 +195,37 @@ def get_current_profit(telegram_address):
 def get_period_profit(begin_date, end_date, telegram_address):
     session = sessionmaker(bind=engine)()
     user_data = session.query(Operations).filter(and_(Operations.telegram_address
-                                                 == telegram_address, Operations.date
+                                                      == telegram_address, Operations.date
                                                       >= begin_date, Operations.date
                                                       <= end_date)).order_by(Operations.date)
     session.commit()
+    companies_stocks_period_cost = {x.company_symbol: get_period_data_of_cost(begin_date,
+                                                                              end_date, x.company_symbol)
+                                    for x in user_data}
+    if len(companies_stocks_period_cost) == 0:
+        return None
     result = {x.currency: [[], []] for x in user_data}
-    start_ordinal = datetime.datetime.strptime(begin_date, "%Y-%m-%d").toordinal()
-    end_ordinal = datetime.datetime.strptime(end_date, "%Y-%m-%d").toordinal()
-    for date_ordinal in range(start_ordinal, end_ordinal + 1):
+    dates_list = companies_stocks_period_cost[list(companies_stocks_period_cost)[0]][0]
+    currencies_for_companies = {x: get_currency(x) for x in companies_stocks_period_cost}
+
+    def get_cost_by_date(date_cost, symbol):
+        current_costs = companies_stocks_period_cost[symbol]
+        result_cost = current_costs[1][0]
+        for i in range(len(current_costs[0])):
+            if current_costs[0][i] <= date_cost:
+                result_cost = current_costs[1][i]
+        return result_cost
+
+    for date in dates_list:
+        print(date)
         current_balance = get_period_balance(user_data)
         current_count_of_stocks = get_period_count_of_stocks(user_data)
         for x in result:
-            result[x][0].append(datetime.datetime.fromordinal(date_ordinal))
-            result[x][1].append(current_balance[x] if x in current_balance.keys() else 0)
+            result[x][0].append(date)
+            result[x][1].append(0)
         for ticker in current_count_of_stocks:
-            current_currency = get_currency(ticker)
-            current_cost = get_period_data_of_cost(datetime.datetime.
-                                                   fromordinal(date_ordinal - 14)
-                                                   .isoformat()[:10], datetime.datetime
-                                                   .fromordinal(date_ordinal)
-                                                   .isoformat()[:10], ticker)[1]
-            result[current_currency][1][-1] += current_count_of_stocks[ticker] * current_cost[-1]
+            current_currency = currencies_for_companies[ticker]
+            current_cost = get_cost_by_date(date, ticker)
+            result[current_currency][1][-1] += current_balance[ticker]
+            result[current_currency][1][-1] += current_count_of_stocks[ticker] * current_cost
     return result
-
