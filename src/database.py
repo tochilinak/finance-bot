@@ -139,8 +139,8 @@ def get_list_of_operations(telegram_address):
     q = session.query(Operations).filter(Operations.telegram_address
                                          == telegram_address)
     content = [[x.id, x.telegram_address, x.company_symbol,
-                x.count_of_stocks, x.price, x.currency, x.date, x.operation_type]
-               for x in q]
+                x.count_of_stocks, x.price, x.currency, x.date,
+                x.operation_type] for x in q]
     with open("out.csv", "w") as file:
         writer = csv.writer(file)
         writer.writerows([headers] + content)
@@ -148,17 +148,30 @@ def get_list_of_operations(telegram_address):
 
 
 def get_period_balance(user_data):
+    """Get user's balance by a period contained in user_data.
+
+    :param user_data: SQLAlchemy query object.
+    :return: Dictionary {company symbol: user's balance}.
+    """
     companies_tickers = [x.company_symbol for x in user_data]
     balance = dict.fromkeys(companies_tickers, 0)
     for record in user_data:
         if record.operation_type == OperationType.BUY_OPERATION:
-            balance[record.company_symbol] -= record.price * record.count_of_stocks
+            balance[record.company_symbol] -= record.price *\
+                                              record.count_of_stocks
         else:
-            balance[record.company_symbol] += record.price * record.count_of_stocks
+            balance[record.company_symbol] += record.price *\
+                                              record.count_of_stocks
     return balance
 
 
 def get_period_count_of_stocks(user_data):
+    """Get count of stocks from every company from a\
+    period contained in user_data.
+
+    :param user_data: SQLAlchemy query object.
+    :return: Dictionary {company symbol: count of stocks bought by user}.
+    """
     companies_tickers = [x.company_symbol for x in user_data]
     count_of_stocks = dict.fromkeys(companies_tickers, 0)
     for record in user_data:
@@ -170,6 +183,13 @@ def get_period_count_of_stocks(user_data):
 
 
 def get_current_profit(telegram_address):
+    """Get last updated stocks' costs and user's profit.
+
+    :return: Dict. companies_info {company symbol, [actual cost of
+    stocks, user's profit, date of last update]}, dict. curriencies_info
+    {currency: [summary actual costs of stocks bought in this currency,
+    user's profit on this currency]}.
+    """
     session = sessionmaker(bind=engine)()
     user_data = session.query(Operations).filter(Operations.telegram_address
                                                  == telegram_address)
@@ -182,7 +202,8 @@ def get_current_profit(telegram_address):
         ticker_stocks_info = current_cost(ticker)
         current_stock_cost = ticker_stocks_info[0] * count_of_stocks[ticker]
         last_update = ticker_stocks_info[1]
-        companies_info[ticker] = [current_stock_cost, current_stock_cost + balance[ticker], last_update]
+        companies_info[ticker] = [current_stock_cost, current_stock_cost +
+                                  balance[ticker], last_update]
     currencies = [x.currency for x in user_data]
     currencies_info = {x: [0, 0] for x in currencies}
     for ticker in companies_info:
@@ -193,22 +214,40 @@ def get_current_profit(telegram_address):
 
 
 def get_period_profit(begin_date, end_date, telegram_address):
+    """Get period data of user's profit.
+
+    :return: dict. {currency: list of datetime objects, list of user's profit}.
+    """
     session = sessionmaker(bind=engine)()
-    user_data = session.query(Operations).filter(and_(Operations.telegram_address
-                                                      == telegram_address, Operations.date
-                                                      >= begin_date, Operations.date
-                                                      <= end_date)).order_by(Operations.date)
+    user_data = session.query(Operations).filter(and_(Operations
+                                                      .telegram_address ==
+                                                      telegram_address,
+                                                      Operations.date >=
+                                                      begin_date, Operations.
+                                                      date <= end_date)).\
+        order_by(Operations.date)
     session.commit()
-    companies_stocks_period_cost = {x.company_symbol: get_period_data_of_cost(begin_date,
-                                                                              end_date, x.company_symbol)
+    companies_stocks_period_cost = {x.company_symbol: get_period_data_of_cost
+                                    (begin_date, end_date, x.company_symbol)
                                     for x in user_data}
     if len(companies_stocks_period_cost) == 0:
+        # User hadn't bought any stock by this period, so profit
+        # is constant 0.
         return None
     result = {x.currency: [[], []] for x in user_data}
-    dates_list = companies_stocks_period_cost[list(companies_stocks_period_cost)[0]][0]
-    currencies_for_companies = {x: get_currency(x) for x in companies_stocks_period_cost}
+    # Make the Ox values by dates from one company's graphic.
+    dates_list = companies_stocks_period_cost[
+        list(companies_stocks_period_cost)[0]][0]
+    currencies_for_companies = {x: get_currency(x) for x
+                                in companies_stocks_period_cost}
 
     def get_cost_by_date(date_cost, symbol):
+        """Get cost of stocks of a company bu current date.
+
+        :param date_cost: date from which we want to know stock cost.
+        :param symbol: owner of stocks cost which we want to know.
+        :return: closely cost of stock.
+        """
         current_costs = companies_stocks_period_cost[symbol]
         result_cost = current_costs[1][0]
         for i in range(len(current_costs[0])):
@@ -217,7 +256,6 @@ def get_period_profit(begin_date, end_date, telegram_address):
         return result_cost
 
     for date in dates_list:
-        print(date)
         current_balance = get_period_balance(user_data)
         current_count_of_stocks = get_period_count_of_stocks(user_data)
         for x in result:
@@ -227,5 +265,6 @@ def get_period_profit(begin_date, end_date, telegram_address):
             current_currency = currencies_for_companies[ticker]
             current_cost = get_cost_by_date(date, ticker)
             result[current_currency][1][-1] += current_balance[ticker]
-            result[current_currency][1][-1] += current_count_of_stocks[ticker] * current_cost
+            result[current_currency][1][-1] +=\
+                current_count_of_stocks[ticker] * current_cost
     return result
