@@ -1,10 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
+from sqlalchemy import and_
 from sqlalchemy.orm import sessionmaker
 from enum import IntEnum
 from api_requests import get_currency, current_cost, get_period_data_of_cost
 import csv
+import datetime
 
 
 engine = create_engine("sqlite:///portfolio.db")
@@ -85,8 +87,7 @@ def delete_users_ticker(telegram_address, symbol):
     """
     session = sessionmaker(bind=engine)()
     # SQLAlchemy Query object (contains db response)
-    q = session.query(Users).filter(Users.telegram_address == telegram_address,
-                                    Users.company_symbol == symbol).first()
+    q = session.query(Users).get([telegram_address, symbol])
     if q is not None:
         session.delete(q)
     session.commit()
@@ -122,7 +123,7 @@ def delete_operation(operation_id):
     """
     session = sessionmaker(bind=engine)()
     # SQLAlchemy Query object (contains db response)
-    q = session.query(Operations).filter(Operations.id == operation_id).first()
+    q = session.query(Operations).get(operation_id)
     if q is not None:
         session.delete(q)
     session.commit()
@@ -146,25 +147,75 @@ def get_list_of_operations(telegram_address):
     session.commit()
 
 
-def get_current_cost(telegram_address):
-    session = sessionmaker(bind=engine)()
-    user_info = session.query(Operations).filter(Operations.telegram_address
-                                                 == telegram_address)
-    companies_tickers = [x.company_symbol for x in user_info]
+def get_period_balance(user_data):
+    companies_tickers = [x.company_symbol for x in user_data]
     balance = dict.fromkeys(companies_tickers, 0)
-    count_of_stocks = dict.fromkeys(companies_tickers, 0)
-    for record in user_info:
+    for record in user_data:
         if record.operation_type == OperationType.BUY_OPERATION:
             balance[record.company_symbol] -= record.price * record.count_of_stocks
-            count_of_stocks[record.company_symbol] += record.count_of_stocks
         else:
             balance[record.company_symbol] += record.price * record.count_of_stocks
+    return balance
+
+
+def get_period_count_of_stocks(user_data):
+    companies_tickers = [x.company_symbol for x in user_data]
+    count_of_stocks = dict.fromkeys(companies_tickers, 0)
+    for record in user_data:
+        if record.operation_type == OperationType.BUY_OPERATION:
+            count_of_stocks[record.company_symbol] += record.count_of_stocks
+        else:
             count_of_stocks[record.company_symbol] -= record.count_of_stocks
+    return count_of_stocks
+
+
+
+def get_current_profit(telegram_address):
+    session = sessionmaker(bind=engine)()
+    user_data = session.query(Operations).filter(Operations.telegram_address
+                                                 == telegram_address)
+    session.commit()
+    companies_tickers = [x.company_symbol for x in user_data]
+    balance = get_period_balance(user_data)
+    count_of_stocks = get_period_count_of_stocks(user_data)
     companies_info = dict.fromkeys(companies_tickers)
     for ticker in companies_tickers:
         ticker_stocks_info = current_cost(ticker)
         current_stock_cost = ticker_stocks_info[0] * count_of_stocks[ticker]
         last_update = ticker_stocks_info[1]
         companies_info[ticker] = [current_stock_cost, current_stock_cost + balance[ticker], last_update]
+    currencies = [x.currency for x in user_data]
+    currencies_info = {x: [0, 0] for x in currencies}
+    for ticker in companies_info:
+        current_currency = get_currency(ticker)
+        currencies_info[current_currency][0] += companies_info[ticker][0]
+        currencies_info[current_currency][1] += companies_info[ticker][1]
+    return companies_info, currencies_info
+
+
+def get_period_profit(begin_date, end_date, telegram_address):
+    session = sessionmaker(bind=engine)()
+    user_data = session.query(Operations).filter(and_(Operations.telegram_address
+                                                 == telegram_address, Operations.date
+                                                      >= begin_date, Operations.date
+                                                      <= end_date)).order_by(Operations.date)
     session.commit()
-    return companies_info
+    result = {x.currency: [[], []] for x in user_data}
+    start_ordinal = datetime.datetime.strptime(begin_date, "%Y-%m-%d").toordinal()
+    end_ordinal = datetime.datetime.strptime(end_date, "%Y-%m-%d").toordinal()
+    for date_ordinal in range(start_ordinal, end_ordinal + 1):
+        current_balance = get_period_balance(user_data)
+        current_count_of_stocks = get_period_count_of_stocks(user_data)
+        for x in result:
+            result[x][0].append(datetime.datetime.fromordinal(date_ordinal))
+            result[x][1].append(current_balance[x] if x in current_balance.keys() else 0)
+        for ticker in current_count_of_stocks:
+            current_currency = get_currency(ticker)
+            current_cost = get_period_data_of_cost(datetime.datetime.
+                                                   fromordinal(date_ordinal - 14)
+                                                   .isoformat()[:10], datetime.datetime
+                                                   .fromordinal(date_ordinal)
+                                                   .isoformat()[:10], ticker)[1]
+            result[current_currency][1][-1] += current_count_of_stocks[ticker] * current_cost[-1]
+    return result
+
