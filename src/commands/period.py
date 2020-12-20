@@ -67,7 +67,7 @@ class PeriodGetter:
     def ask_period(update: Update):
         """Ask about period (send some messages)."""
         update.message.reply_text(
-            "For what period are you interested in the price?"
+            "What period are you interested in?"
         )
         update.message.reply_text(
             "You can get information about entering "
@@ -97,9 +97,9 @@ class PeriodGetter:
     def periods(update: Update, context: CallbackContext):
         """Give user information about entering a period."""
         update.message.reply_text(
-            "/last_update - get the most current prices available\n"
-            "/custom - get prices for a specified period of time\n"
-            "/days - get price for last n days\n"
+            "/last_update - get the most current information available\n"
+            "/custom - get information for a specified period of time\n"
+            "/days - get information for last n days\n"
         )
         return "period"
 
