@@ -5,6 +5,7 @@ from telegram.ext import (
 )
 from re import match
 from commands.bot_filters import OPERATION_INFO
+from database import OperationType as OpT, add_operation
 
 
 def handle_operation(update: Update, context: CallbackContext):
@@ -17,12 +18,16 @@ def handle_operation(update: Update, context: CallbackContext):
         )
         return
 
+    c_id = update.message.chat_id
     ticker, number, date = text.split(", ")
     if match(r'/buy*', update.message.text):
-        pass
+        res = add_operation(c_id, ticker, number, date, OpT.BUY_OPERATION)
     else:
-        pass
-    pass
+        res = add_operation(c_id, ticker, number, date, OpT.SELL_OPERATION)
+    if res:
+        update.message.reply_text("Added operation successfully")
+    else:
+        update.message.reply_text("The date may be incorrect")
 
 
 buy_handler = CommandHandler("buy", handle_operation)
