@@ -276,5 +276,3 @@ def get_period_profit(begin_date, end_date, telegram_address):
             result[current_currency][1][-1] +=\
                 current_count_of_stocks[ticker] * current_cost
     return result
-
-print(get_period_profit("2020-11-01", "2020-12-20", 123))
