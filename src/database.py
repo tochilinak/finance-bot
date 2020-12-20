@@ -103,6 +103,9 @@ def add_operation(telegram_address, symbol, count, date, operation_type):
     :param date: String;
     :param operation_type: enum operation_type object.
     """
+    if len(get_period_data_of_cost(date, date, symbol)[1]) == 0:
+        # Date isn't a trade day.
+        return False
     price = get_period_data_of_cost(date, date, symbol)[1][0]
     currency = get_currency(symbol)
     current_operation = Operations(telegram_address=telegram_address,
@@ -114,6 +117,7 @@ def add_operation(telegram_address, symbol, count, date, operation_type):
     session = sessionmaker(bind=engine)()
     session.add(current_operation)
     session.commit()
+    return True
 
 
 def delete_operation(operation_id):
@@ -152,7 +156,7 @@ def get_prefix_balance(user_data, end_date="9999-99-99"):
 
     :param user_data: SQLAlchemy query object.
     :param end_date: date till we watch values.
-    :return: Dictionary {company symbol: user's balance}.
+    :return: dictionary {company symbol: user's balance}.
     """
     companies_tickers = [x.company_symbol for x in user_data]
     balance = dict.fromkeys(companies_tickers, 0)
@@ -174,7 +178,7 @@ def get_prefix_count_of_stocks(user_data, end_date="9999-99-99"):
 
     :param user_data: SQLAlchemy query object.
     :param end_date: date till we watch values.
-    :return: Dictionary {company symbol: count of stocks bought by user}.
+    :return: dictionary {company symbol: count of stocks bought by user}.
     """
     companies_tickers = [x.company_symbol for x in user_data]
     count_of_stocks = dict.fromkeys(companies_tickers, 0)
@@ -272,5 +276,3 @@ def get_period_profit(begin_date, end_date, telegram_address):
             result[current_currency][1][-1] +=\
                 current_count_of_stocks[ticker] * current_cost
     return result
-
-print(get_period_profit("2020-11-01", "2020-12-20", 123))
