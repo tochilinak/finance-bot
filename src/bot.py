@@ -11,6 +11,7 @@ from commands.list_of_interesting.add import add_to_list_handler
 from commands.list_of_interesting.delete import delete_from_list_handler
 from commands.portfolio.operation import buy_handler, sell_handler
 from commands.portfolio.portfolio import portfolio_handler
+from commands.portfolio.operation_list import operation_list_handler
 from commands.basic import (
     unknown_command_handler,
     unknown_text_handler
@@ -72,6 +73,9 @@ def main():
 
     # Add handler for /portfolio
     dispatcher.add_handler(portfolio_handler)
+
+    # Add handler for /operation_list
+    dispatcher.add_handler(operation_list_handler)
 
     # Add handlers for unknown messages
     dispatcher.add_handler(unknown_command_handler)

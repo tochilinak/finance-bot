@@ -1,1 +1,5 @@
-id,telegram_address,company_symbol,count_of_stocks,price,date,operation_type
+id,telegram_address,company_symbol,count_of_stocks,price,currency,date,operation_type
+1,634772298,GOOGL,7,1005.6500244140625,USD,2017-10-13,0
+2,634772298,YNDX,3,5145.4,RUB,2020-12-17,0
+3,634772298,GOOGL,7,1455.5999755859375,USD,2020-10-03,0
+4,634772298,TSLA,13,448.1600036621094,USD,2020-10-02,0
