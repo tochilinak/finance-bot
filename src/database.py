@@ -264,7 +264,8 @@ def get_period_profit(begin_date, end_date, telegram_address):
 
     for date in dates_list:
         current_balance = get_period_balance(user_data, date.isoformat()[:10])
-        current_count_of_stocks = get_period_count_of_stocks(user_data, date.isoformat()[:10])
+        current_count_of_stocks = get_period_count_of_stocks(user_data, date.
+                                                             isoformat()[:10])
         for x in result:
             result[x][0].append(date)
             result[x][1].append(0)
