@@ -144,7 +144,7 @@ def get_list_of_operations(telegram_address):
                                          == telegram_address)
     content = [[x.id, x.telegram_address, x.company_symbol,
                 x.count_of_stocks, x.price, x.currency, x.date,
-                x.operation_type] for x in q]
+                OperationType(x.operation_type).name] for x in q]
     with open("out.csv", "w") as file:
         writer = csv.writer(file)
         writer.writerows([headers] + content)
