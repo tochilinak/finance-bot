@@ -26,6 +26,7 @@ class PeriodGetter:
     def __init__(self, callback, map_to_parent):
         """
         Create Getter.
+
         :param callback: function, that will be called after getting a period.
         It can be 'return "got_period"' if you need to go to next state of
         conversation or function that gives user information and end the
@@ -67,7 +68,7 @@ class PeriodGetter:
     def ask_period(update: Update):
         """Ask about period (send some messages)."""
         update.message.reply_text(
-            "For what period are you interested in the price?"
+            "What period are you interested in?"
         )
         update.message.reply_text(
             "You can get information about entering "
@@ -97,13 +98,14 @@ class PeriodGetter:
     def periods(update: Update, context: CallbackContext):
         """Give user information about entering a period."""
         update.message.reply_text(
-            "/last_update - get the most current prices available\n"
-            "/custom - get prices for a specified period of time\n"
-            "/days - get price for last n days\n"
+            "/last_update - get the most current information available\n"
+            "/custom - get information for a specified period of time\n"
+            "/days - get information for last n days\n"
         )
         return "period"
 
     def last_update(self):
+        """Create function with action from self.callback."""
         def res(update: Update, context: CallbackContext):
             """Reaction to /last_update."""
             context.user_data["period"] = Period("lu")
@@ -114,7 +116,6 @@ class PeriodGetter:
     @staticmethod
     def custom(update: Update, context: CallbackContext):
         """Reaction to /custom. Ask dates for custom request."""
-
         update.message.reply_text(
             "Enter start and end date, format 'YYYY-MM-DD YYYY-MM-DD'"
         )
@@ -127,7 +128,9 @@ class PeriodGetter:
         return "get_custom_period"
 
     def get_custom_period(self):
+        """Create function with action from self.callback."""
         def res(update: Update, context: CallbackContext):
+            """Create custom period from message text."""
             text = update.message.text
             if PeriodGetter.create_custom_period(context, text):
                 return self.callback(update, context)
@@ -142,7 +145,6 @@ class PeriodGetter:
     @staticmethod
     def days(update: Update, context: CallbackContext):
         """Reaction to /days. Ask number of days for request."""
-
         update.message.reply_text(
             "Enter number of days"
         )
@@ -155,7 +157,9 @@ class PeriodGetter:
         return "get_number_of_days"
 
     def get_number_of_days(self):
+        """Create function with action from self.callback."""
         def res(update: Update, context: CallbackContext):
+            """Create custom period from text in 'n days' format."""
             text = update.message.text
             if PeriodGetter.create_some_days_period(context, text):
                 return self.callback(update, context)
@@ -182,6 +186,7 @@ class PeriodGetter:
         ]
 
     def get_period_handler(self):
+        """Create conversation hanler for getting period."""
         return ConversationHandler(
             entry_points=self.independent_handlers(),
             states={"period": self.independent_handlers(),

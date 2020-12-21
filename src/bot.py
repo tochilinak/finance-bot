@@ -10,6 +10,9 @@ from commands.find_company import find_company_handler
 from commands.list_of_interesting.add import add_to_list_handler
 from commands.list_of_interesting.delete import delete_from_list_handler
 from commands.portfolio.operation import buy_handler, sell_handler
+from commands.portfolio.portfolio import portfolio_handler
+from commands.portfolio.operation_list import operation_list_handler
+from commands.portfolio.delete_operation import delete_operation_handler
 from commands.basic import (
     unknown_command_handler,
     unknown_text_handler
@@ -40,6 +43,14 @@ def help_bot(update: Update, context: CallbackContext):
 
         "/delete - delete company from your list of companies of interest\n"
 
+        "/buy and /sell - add information about your operation\n"
+
+        "/portfolio - get information about your profit\n"
+
+        "/operation_list - get list of your operations\n"
+        
+        "/delete_operation - delete incorrect operation\n"
+
         "/cancel - сancel command\n"
     )
 
@@ -68,6 +79,15 @@ def main():
     # Add handlers for buy and sell
     dispatcher.add_handler(buy_handler)
     dispatcher.add_handler(sell_handler)
+
+    # Add handler for /portfolio
+    dispatcher.add_handler(portfolio_handler)
+
+    # Add handler for /operation_list
+    dispatcher.add_handler(operation_list_handler)
+
+    # Add handler for /delete_operation
+    dispatcher.add_handler(delete_operation_handler)
 
     # Add handlers for unknown messages
     dispatcher.add_handler(unknown_command_handler)

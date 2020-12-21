@@ -144,7 +144,7 @@ def get_list_of_operations(telegram_address):
                                          == telegram_address)
     content = [[x.id, x.telegram_address, x.company_symbol,
                 x.count_of_stocks, x.price, x.currency, x.date,
-                x.operation_type] for x in q]
+                OperationType(x.operation_type).name] for x in q]
     with open("out.csv", "w") as file:
         writer = csv.writer(file)
         writer.writerows([headers] + content)
@@ -230,8 +230,7 @@ def get_period_profit(begin_date, end_date, telegram_address):
     session = sessionmaker(bind=engine)()
     user_data = session.query(Operations).\
         filter(and_(Operations.telegram_address == telegram_address,
-                    Operations.date >= begin_date, Operations.date
-                    <= end_date)).order_by(Operations.date)
+                    Operations.date <= end_date)).order_by(Operations.date)
     session.commit()
     companies_symbols = {x.company_symbol for x in user_data}
     if len(companies_symbols) == 0:
