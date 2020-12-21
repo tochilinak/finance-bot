@@ -13,10 +13,10 @@ def delete(update: Update, context: CallbackContext):
     """Delete operation."""
     try:
         operation = int(update.message.text)
-        delete_operation(operation)
-        update.message.reply_text("Deleted succefully!")
+        delete_operation(update.message.chat_id, operation)
+        update.message.reply_text("Deleted successfully!")
     except:
-        update.message.reply_text("Deleted unsuccefully!")
+        update.message.reply_text("Deleted unsuccessfully!")
     return ConversationHandler.END
 
 
