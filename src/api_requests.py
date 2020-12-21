@@ -69,6 +69,8 @@ def get_period_data_of_cost_moex(start, end, symbol):
 
 
 def get_period_data_of_cost_yahoo(start, end, symbol):
+    end = (datetime.date.fromisoformat(end) + datetime.timedelta(days=1))
+    end = end.isoformat()
     company = yfinance.Ticker(symbol)
     res = company.history(start=start, end=end)["Close"]
     dates = [x.to_pydatetime() for x in res.index]
