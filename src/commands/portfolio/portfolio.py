@@ -11,11 +11,13 @@ from commands.portfolio.period_profit import period_profit
 
 
 def give_portfolio(update: Update, context: CallbackContext):
+    """Act after getting information about the period."""
     period = context.user_data["period"]
     if period.period_type == "lu":
         return current_profit(update, context)
     if period.period_type == "cd":
         return period_profit(update, context)
+    update.message.reply_text("Something went wrong")
     return ConversationHandler.END
 
 

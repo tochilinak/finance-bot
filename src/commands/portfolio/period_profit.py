@@ -10,7 +10,7 @@ PLOT_FILENAME = "plot.png"
 
 
 def period_profit(update: Update, context: CallbackContext):
-
+    """Send plots profits(date) to the chat."""
     period = context.user_data["period"]
     start_date, end_date = period.data.split(' ')
     chat_id = update.message.chat_id
