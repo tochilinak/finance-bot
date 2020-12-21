@@ -75,7 +75,7 @@ def get_period_data_of_cost_yahoo(start, end, symbol):
         return date.isoformat()
 
     end = add_day(end)
-    start = add_day(start)
+    # start = add_day(start)
     company = yfinance.Ticker(symbol)
     res = company.history(start=start, end=end)["Close"]
     dates = [x.to_pydatetime() for x in res.index]
