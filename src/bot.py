@@ -48,7 +48,7 @@ def help_bot(update: Update, context: CallbackContext):
         "/portfolio - get information about your profit\n"
 
         "/operation_list - get list of your operations\n"
-        
+
         "/delete_operation - delete incorrect operation\n"
 
         "/cancel - сancel command\n"

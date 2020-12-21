@@ -13,7 +13,7 @@ class QueryData:
     start_date: str = None
     end_date: str = None
     name: str = None
-    result: dict = field(default_factory=dict) # for asynchronous requests
+    result: dict = field(default_factory=dict)  # for asynchronous requests
 
 
 class APIQuery(ABC):
