@@ -21,9 +21,7 @@ def delete(update: Update, context: CallbackContext):
 
 
 def delete_start(update: Update, context: CallbackContext):
-    """
-    Start of conversation.
-    """
+    """Start of conversation. Reaction to /delete_operation."""
     # context.args is list of words after command
     if not context.args:
         update.message.reply_text(

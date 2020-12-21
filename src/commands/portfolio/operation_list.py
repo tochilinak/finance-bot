@@ -10,6 +10,7 @@ CSV_FILENAME = "out.csv"
 
 
 def give_list(update: Update, context: CallbackContext):
+    """Reaction to /operation_list."""
     chat_id = update.message.chat_id
     get_list_of_operations(chat_id)
 

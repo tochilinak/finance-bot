@@ -42,6 +42,14 @@ def help_bot(update: Update, context: CallbackContext):
         "/add - add company to your list of companies of interest\n"
 
         "/delete - delete company from your list of companies of interest\n"
+        
+        "/buy and /sell - add information about your operation\n"
+        
+        "/portfolio - get information about your profit\n"
+        
+        "/list_of_operations - get list of your operations\n"
+        
+        "/delete_operation - delete incorrect operation\n"
 
         "/cancel - сancel command\n"
     )

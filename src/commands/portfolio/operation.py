@@ -9,6 +9,7 @@ from database import OperationType as OpT, add_operation
 
 
 def handle_operation(update: Update, context: CallbackContext):
+    """Reaction to /buy or /sell."""
     text: str = " ".join(context.args)
     if not match(OPERATION_INFO, text):
         update.message.reply_text(

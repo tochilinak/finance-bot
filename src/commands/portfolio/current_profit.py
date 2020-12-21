@@ -8,7 +8,6 @@ from database import get_current_profit
 
 def company_info_line(ticker, information):
     """Cretate string in format "ticker: profit info"."""
-
     result = f'*{ticker}*:\n'
     cost = str(information[0]).replace(".", r"\.")
     cost = cost.replace("-", r"\-")
@@ -22,8 +21,7 @@ def company_info_line(ticker, information):
 
 
 def currency_info_line(currency, information):
-    """Cretate string in format "ticker: profit info"."""
-
+    """Cretate string in format "currency: profit info"."""
     result = f'*{currency}*:\n'
     summary_cost = str(information[0]).replace(".", r"\.")
     summary_cost = summary_cost.replace("-", r"\-")
@@ -35,7 +33,7 @@ def currency_info_line(currency, information):
 
 
 def current_profit(update: Update, context: CallbackContext):
-    """Send the companies current profits to the chat"""
+    """Send current profits to the chat."""
     chat_id = update.message.chat_id
 
     companies_info, currencies_info = get_current_profit(chat_id)
@@ -45,6 +43,8 @@ def current_profit(update: Update, context: CallbackContext):
         text += "\n".join([
             company_info_line(ticker, companies_info[ticker]) for ticker in
             companies_info.keys()])
+    else:
+        text += "no information"
     context.bot.send_message(
         text=text,
         chat_id=chat_id,
@@ -54,8 +54,10 @@ def current_profit(update: Update, context: CallbackContext):
     text = "Information by currency:\n"
     if currencies_info:
         text += "\n".join([
-            currency_info_line(currency, currencies_info[currency]) for currency in
+            currency_info_line(cur, currencies_info[cur]) for cur in
             currencies_info.keys()])
+    else:
+        text += "no information"
     context.bot.send_message(
         text=text,
         chat_id=chat_id,
