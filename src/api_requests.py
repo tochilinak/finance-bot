@@ -70,14 +70,17 @@ def get_period_data_of_cost_moex(start, end, symbol):
 
 def get_period_data_of_cost_yahoo(start, end, symbol):
 
-    def add_day(date):
-        date = (datetime.date.fromisoformat(date) + datetime.timedelta(days=1))
-        return date.isoformat()
+    def add_day(date, delta=1):
+        return (datetime.date.fromisoformat(date) +
+                datetime.timedelta(days=delta)).isoformat()
 
-    end = add_day(end)
-    # start = add_day(start)
     company = yfinance.Ticker(symbol)
-    res = company.history(start=start, end=end)["Close"]
+    res = company.history(start=add_day(start, -1), end=add_day(end))["Close"]
+
+    # remove extra dates
+    res = res[(res.index.strftime("%Y-%m-%d") >= start) &
+              (res.index.strftime("%Y-%m-%d") <= end)]
+
     dates = [x.to_pydatetime() for x in res.index]
     return dates, list(res)
 
