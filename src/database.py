@@ -230,8 +230,7 @@ def get_period_profit(begin_date, end_date, telegram_address):
     session = sessionmaker(bind=engine)()
     user_data = session.query(Operations).\
         filter(and_(Operations.telegram_address == telegram_address,
-                    Operations.date >= begin_date, Operations.date
-                    <= end_date)).order_by(Operations.date)
+                    Operations.date <= end_date)).order_by(Operations.date)
     session.commit()
     companies_symbols = {x.company_symbol for x in user_data}
     if len(companies_symbols) == 0:
