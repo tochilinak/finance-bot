@@ -24,14 +24,15 @@ def info_line(query_data: QueryData):
 
     result = r"*%s:* %s %s" % (ticker, price, currency)
     if last_update:
-        result +=  " \(last updated: %s\)" % (last_update)
+        result += r" \(last updated: %s\)" % (last_update)
 
     return result
 
 
 def get_results(tickers):
     query_data_list = [QueryData(symbol=x.upper()) for x in tickers]
-    async_request(query_data_list, [QueryType.CURRENT_COST, QueryType.CURRENCY])
+    async_request(query_data_list, [QueryType.CURRENT_COST,
+                                    QueryType.CURRENCY])
     return query_data_list
 
 

@@ -13,7 +13,7 @@ PLOT_FILENAME = "plot.png"
 
 
 def get_results(tickers, start_date, end_date):
-    query_data_list = [QueryData(symbol=x.upper(), start_date = start_date,
+    query_data_list = [QueryData(symbol=x.upper(), start_date=start_date,
                        end_date=end_date) for x in tickers]
     async_request(query_data_list, [QueryType.PERIOD_COST, QueryType.CURRENCY])
     return query_data_list
