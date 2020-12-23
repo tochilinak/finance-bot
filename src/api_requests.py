@@ -165,13 +165,13 @@ def collect_results(list_of_futures, query_data_list):
 
 
 def async_current_cost_and_currency(query_data_list, query_types):
-    with FuturesSession() as session:
-        list_of_futures_moex = start_requests(session, query_data_list,
-                                              query_types, moex_queries)
-        list_of_futures_foreign = start_requests(session, query_data_list,
-                                                 query_types, foreign_queries)
-        collect_results(list_of_futures_moex, query_data_list)
-        collect_results(list_of_futures_foreign, query_data_list)
+    session = FuturesSession()
+    list_of_futures_moex = start_requests(session, query_data_list,
+                                          query_types, moex_queries)
+    list_of_futures_foreign = start_requests(session, query_data_list,
+                                             query_types, foreign_queries)
+    collect_results(list_of_futures_moex, query_data_list)
+    collect_results(list_of_futures_foreign, query_data_list)
 
 
 def start_period_cost(query_data_list):

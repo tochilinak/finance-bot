@@ -210,7 +210,7 @@ def get_current_profit(telegram_address):
     user_data = session.query(Operations).filter(Operations.telegram_address
                                                  == telegram_address)
     session.commit()
-    companies_tickers = [x.company_symbol for x in user_data]
+    companies_tickers = set(x.company_symbol for x in user_data)
     balance = get_prefix_balance(user_data)
     count_of_stocks = get_prefix_count_of_stocks(user_data)
     companies_info = dict.fromkeys(companies_tickers)
