@@ -37,9 +37,12 @@ def give_custom_price(update: Update, context: CallbackContext):
                 f"I have no information about {ticker}"
             )
         else:
-            currency = query_data.result[QueryType.CURRENCY]
             title = f"{ticker} stock price"
-            plot_data = PlotData(dates, values, title, currency)
+            ylabel = "stock price"
+            currency = query_data.result[QueryType.CURRENCY]
+            if currency is not None:
+                ylabel += f" (in {currency})"
+            plot_data = PlotData(dates, values, title, ylabel)
             list_plot_data.append(plot_data)
 
     # Draw plot in file if information exists

@@ -19,9 +19,11 @@ def period_profit(update: Update, context: CallbackContext):
     if info:
         list_plot_data = [
             PlotData(
-                info[currency][0],
-                info[currency][1],
-                f"Profit for stocks in {currency}"
+                dates=info[currency][0],
+                y_values=info[currency][1],
+                title=f"Profit for stocks in {currency}",
+                ylabel="profit"
+
             ) for currency in info.keys()
         ]
 
