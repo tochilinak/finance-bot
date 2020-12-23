@@ -250,11 +250,13 @@ def get_period_profit(begin_date, end_date, telegram_address):
         # is constant 0. Not interesting.
         return None
     # To make less api requests.
-    currencies_for_companies = {x: get_currency(x) for x
-                                in companies_symbols}
-    companies_stocks_period_cost = {x: get_period_data_of_cost
-                                    (begin_date, end_date, x)
-                                    for x in companies_symbols}
+    query_data_list = [QueryData(symbol=x, start_date=begin_date,
+                                 end_date=end_date) for x in companies_symbols]
+    async_request(query_data_list, [QueryType.CURRENCY, QueryType.PERIOD_COST])
+    currencies_for_companies = {x.symbol: x.result[QueryType.CURRENCY] for x
+                                in query_data_list}
+    companies_stocks_period_cost = {x.symbol: x.result[QueryType.PERIOD_COST]
+                                    for x in query_data_list}
     result = {x.currency: [[], []] for x in user_data}
     # Make the Ox values by dates from union of Ox values from each company.
     dates_set = set()
