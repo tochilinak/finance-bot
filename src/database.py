@@ -120,7 +120,7 @@ def add_operation(telegram_address, symbol, count, date, operation_type):
     return True
 
 
-def delete_operation(operation_id):
+def delete_operation(telegram_address, operation_id):
     """Delete operation with current id.
 
     :param operation_id: id of operation.
@@ -128,7 +128,7 @@ def delete_operation(operation_id):
     session = sessionmaker(bind=engine)()
     # SQLAlchemy Query object (contains db response)
     q = session.query(Operations).get(operation_id)
-    if q is not None:
+    if q is not None and q.telegram_address == telegram_address:
         session.delete(q)
     session.commit()
 
