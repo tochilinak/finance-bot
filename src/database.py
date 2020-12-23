@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy import and_
 from sqlalchemy.orm import sessionmaker
 from enum import IntEnum
-from api_requests import get_currency, current_cost, get_period_data_of_cost
+from api_requests import *
 import csv
 import datetime
 
@@ -214,15 +214,21 @@ def get_current_profit(telegram_address):
     balance = get_prefix_balance(user_data)
     count_of_stocks = get_prefix_count_of_stocks(user_data)
     companies_info = dict.fromkeys(companies_tickers)
-    for ticker in companies_tickers:
-        ticker_stocks_info = current_cost(ticker)
+
+    query_data_list = [QueryData(symbol=x) for x in companies_tickers]
+    async_request(query_data_list, [QueryType.CURRENCY, QueryType.CURRENT_COST])
+
+    for query_data in query_data_list:
+        ticker = query_data.symbol
+        ticker_stocks_info = query_data.result[QueryType.CURRENT_COST]
         current_stock_cost = ticker_stocks_info[0] * count_of_stocks[ticker]
         last_update = ticker_stocks_info[1]
         companies_info[ticker] = [current_stock_cost, current_stock_cost +
                                   balance[ticker], last_update]
     currencies_info = {x.currency: [0, 0] for x in user_data}
-    for ticker in companies_info:
-        current_currency = get_currency(ticker)
+    for query_data in query_data_list:
+        ticker = query_data.symbol
+        current_currency = query_data.result[QueryType.CURRENCY]
         currencies_info[current_currency][0] += companies_info[ticker][0]
         currencies_info[current_currency][1] += companies_info[ticker][1]
     return companies_info, currencies_info
