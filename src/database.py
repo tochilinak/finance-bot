@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy import and_
 from sqlalchemy.orm import sessionmaker
 from enum import IntEnum
-from api_requests import get_currency, current_cost, get_period_data_of_cost
+from api_requests import *
 import csv
 import datetime
 
@@ -124,13 +124,19 @@ def delete_operation(telegram_address, operation_id):
     """Delete operation with current id.
 
     :param operation_id: id of operation.
+    return True if successful and False otherwise.
     """
     session = sessionmaker(bind=engine)()
     # SQLAlchemy Query object (contains db response)
     q = session.query(Operations).get(operation_id)
+
+    success = False
     if q is not None and q.telegram_address == telegram_address:
         session.delete(q)
+        success = True
+
     session.commit()
+    return success
 
 
 def get_list_of_operations(telegram_address):
@@ -204,19 +210,25 @@ def get_current_profit(telegram_address):
     user_data = session.query(Operations).filter(Operations.telegram_address
                                                  == telegram_address)
     session.commit()
-    companies_tickers = [x.company_symbol for x in user_data]
+    companies_tickers = set(x.company_symbol for x in user_data)
     balance = get_prefix_balance(user_data)
     count_of_stocks = get_prefix_count_of_stocks(user_data)
     companies_info = dict.fromkeys(companies_tickers)
-    for ticker in companies_tickers:
-        ticker_stocks_info = current_cost(ticker)
+
+    query_data_list = [QueryData(symbol=x) for x in companies_tickers]
+    async_request(query_data_list, [QueryType.CURRENCY, QueryType.CURRENT_COST])
+
+    for query_data in query_data_list:
+        ticker = query_data.symbol
+        ticker_stocks_info = query_data.result[QueryType.CURRENT_COST]
         current_stock_cost = ticker_stocks_info[0] * count_of_stocks[ticker]
         last_update = ticker_stocks_info[1]
         companies_info[ticker] = [current_stock_cost, current_stock_cost +
                                   balance[ticker], last_update]
     currencies_info = {x.currency: [0, 0] for x in user_data}
-    for ticker in companies_info:
-        current_currency = get_currency(ticker)
+    for query_data in query_data_list:
+        ticker = query_data.symbol
+        current_currency = query_data.result[QueryType.CURRENCY]
         currencies_info[current_currency][0] += companies_info[ticker][0]
         currencies_info[current_currency][1] += companies_info[ticker][1]
     return companies_info, currencies_info
@@ -238,11 +250,13 @@ def get_period_profit(begin_date, end_date, telegram_address):
         # is constant 0. Not interesting.
         return None
     # To make less api requests.
-    currencies_for_companies = {x: get_currency(x) for x
-                                in companies_symbols}
-    companies_stocks_period_cost = {x: get_period_data_of_cost
-                                    (begin_date, end_date, x)
-                                    for x in companies_symbols}
+    query_data_list = [QueryData(symbol=x, start_date=begin_date,
+                                 end_date=end_date) for x in companies_symbols]
+    async_request(query_data_list, [QueryType.CURRENCY, QueryType.PERIOD_COST])
+    currencies_for_companies = {x.symbol: x.result[QueryType.CURRENCY] for x
+                                in query_data_list}
+    companies_stocks_period_cost = {x.symbol: x.result[QueryType.PERIOD_COST]
+                                    for x in query_data_list}
     result = {x.currency: [[], []] for x in user_data}
     # Make the Ox values by dates from union of Ox values from each company.
     dates_set = set()
