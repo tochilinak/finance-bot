@@ -81,7 +81,7 @@ class PeriodGetter:
 
         def res(update: Update, context: CallbackContext):
             text = update.message.text
-            if text == '':
+            if text is None:
                 return PeriodGetter.ask_period(update)
             else:
                 if PeriodGetter.create_custom_period(context, text):
