@@ -40,7 +40,7 @@ class PeriodGetter:
 
     @staticmethod
     def create_last_update_period(context: CallbackContext, text: str):
-        """Try to write information about custom period to user data."""
+        """Try to write information about lust_update period to user data."""
         if match(r'^last.update$', text):
             context.user_data["period"] = Period("lu")
             return True

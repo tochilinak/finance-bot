@@ -37,8 +37,8 @@ def price_start(update: Update, context: CallbackContext):
     """
     Srart of conversation.
 
-    Asks for a ticker if it is not specified and return key to the next part
-    of conversation.
+    Asks for a tickers if they are not specified and return
+    key to the next part of conversation.
     """
     # context.args is list of words after command
     if not context.args:
@@ -53,16 +53,17 @@ def price_start(update: Update, context: CallbackContext):
         )
         return "ticker"
 
-    # /price is useless part of message now
+    # '/price' is useless part of message now
     update.message.text = ' '.join(context.args)
     return get_ticker(update, context)
 
 
 def get_ticker(update: Update, context: CallbackContext):
     """
-    Get company ticker or "my" from user and ask about period.
+    Get company tickers or "my" from user and ask about period.
 
-    It can be activated from pricestart (ticker specified) or at state "ticker"
+    It can be activated from price_start (tickers are specified)
+    or at state "ticker"
     """
     text = update.message.text
 
@@ -80,7 +81,7 @@ def get_ticker(update: Update, context: CallbackContext):
         tickers = sub(r" +", " ", tickers)
         context.user_data["tickers"] = tickers.split(' ')
 
-    # tickers is useless part of message now
+    # tickers are useless part of message now
     update.message.text = period
     return PERIOD_GETTER.start_getting_period()(update, context)
 
