@@ -9,7 +9,6 @@ from api_requests import *
 import csv
 import datetime
 
-
 engine = create_engine("sqlite:///portfolio.db")
 Base = declarative_base()
 
@@ -96,8 +95,8 @@ def delete_users_ticker(telegram_address: int, symbol: str):
     session.commit()
 
 
-def add_operation(telegram_address: int, symbol: str, count: int,
-                  date: str, operation_type: IntEnum, price: float=None):
+def add_operation(telegram_address: int, operation_type: IntEnum, symbol: str,
+                  count: int, date: str, price: float = None):
     """Add operation to the table."""
     if price is None:
         # Getting price.
@@ -156,7 +155,7 @@ def get_list_of_operations(telegram_address: int):
 
 
 def get_prefix_balance(user_data: sqlalchemy.orm.query.Query,
-                       end_date: str="9999-99-99"):
+                       end_date: str = "9999-99-99"):
     """Get user's balance by a period contained in user_data.
 
     :param user_data: SQLAlchemy query object.
@@ -169,16 +168,16 @@ def get_prefix_balance(user_data: sqlalchemy.orm.query.Query,
         if record.date > end_date:
             break
         if record.operation_type == OperationType.BUY:
-            balance[record.company_symbol] -= record.price *\
+            balance[record.company_symbol] -= record.price * \
                                               record.count_of_stocks
         else:
-            balance[record.company_symbol] += record.price *\
+            balance[record.company_symbol] += record.price * \
                                               record.count_of_stocks
     return balance
 
 
 def get_prefix_count_of_stocks(user_data: sqlalchemy.orm.query.Query,
-                               end_date: str="9999-99-99"):
+                               end_date: str = "9999-99-99"):
     """Get count of stocks from every company from a\
     period contained in user_data.
 
@@ -242,7 +241,7 @@ def get_period_profit(begin_date: str, end_date: str, telegram_address: int):
     :return: dict. {currency: list of datetime objects, list of user's profit}.
     """
     session = sessionmaker(bind=engine)()
-    user_data = session.query(Operations).\
+    user_data = session.query(Operations). \
         filter(and_(Operations.telegram_address == telegram_address,
                     Operations.date <= end_date)).order_by(Operations.date)
     session.commit()
@@ -293,6 +292,6 @@ def get_period_profit(begin_date: str, end_date: str, telegram_address: int):
             current_currency = currencies_for_companies[ticker]
             current_cost = get_cost_by_date(date, ticker)
             result[current_currency][1][-1] += current_balance[ticker]
-            result[current_currency][1][-1] +=\
+            result[current_currency][1][-1] += \
                 current_count_of_stocks[ticker] * current_cost
     return result
