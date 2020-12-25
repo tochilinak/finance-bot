@@ -1,3 +1,4 @@
+import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
@@ -23,8 +24,8 @@ class Users(Base):
 
 
 class OperationType(IntEnum):
-    BUY_OPERATION = 0
-    SELL_OPERATION = 1
+    BUY = 0
+    SELL = 1
 
 
 class Operations(Base):
@@ -42,14 +43,16 @@ class Operations(Base):
     operation_type = Column(Integer)
 
 
-# deleting table(s)
-# Base.metadata.drop_all(bind=engine, tables=[Operations.__table__])
+def delete_all_tables():
+    """Delete all tables from database."""
+    Base.metadata.drop_all(bind=engine, tables=[Operations.__table__])
+
 
 # create tables that don't exist
 Base.metadata.create_all(bind=engine)
 
 
-def add_users_ticker(telegram_address, company_symbol):
+def add_users_ticker(telegram_address: int, company_symbol: str):
     """Add to database user's telegram id and company's\
     symbol from his portfolio.
 
@@ -64,7 +67,7 @@ def add_users_ticker(telegram_address, company_symbol):
     session.commit()
 
 
-def list_users_tickers(telegram_address):
+def list_users_tickers(telegram_address: int):
     """Find all tickers from user's portfolio.
 
     :param telegram_address: user's telegram id as integer.
@@ -79,7 +82,7 @@ def list_users_tickers(telegram_address):
     return result
 
 
-def delete_users_ticker(telegram_address, symbol):
+def delete_users_ticker(telegram_address: int, symbol: str):
     """Delete a record with user and current ticker.
 
     :param telegram_address: user's telegram id as integer.
@@ -93,20 +96,15 @@ def delete_users_ticker(telegram_address, symbol):
     session.commit()
 
 
-def add_operation(telegram_address, symbol, count, date, operation_type):
-    """Add operation to the table.
-
-    Types of parameters:
-    :param telegram_address: Integer;
-    :param symbol: String;
-    :param count: Integer;
-    :param date: String;
-    :param operation_type: enum operation_type object.
-    """
-    if len(get_period_data_of_cost(date, date, symbol)[1]) == 0:
-        # Date isn't a trade day.
-        return False
-    price = get_period_data_of_cost(date, date, symbol)[1][0]
+def add_operation(telegram_address: int, symbol: str, count: int,
+                  date: str, operation_type: IntEnum, price: float=None):
+    """Add operation to the table."""
+    if price is None:
+        # Getting price.
+        if len(get_period_data_of_cost(date, date, symbol)[1]) == 0:
+            # Date isn't a trade day.
+            return False
+        price = get_period_data_of_cost(date, date, symbol)[1][0]
     currency = get_currency(symbol)
     current_operation = Operations(telegram_address=telegram_address,
                                    company_symbol=symbol,
@@ -120,7 +118,7 @@ def add_operation(telegram_address, symbol, count, date, operation_type):
     return True
 
 
-def delete_operation(telegram_address, operation_id):
+def delete_operation(telegram_address: int, operation_id: int):
     """Delete operation with current id.
 
     :param operation_id: id of operation.
@@ -139,7 +137,7 @@ def delete_operation(telegram_address, operation_id):
     return success
 
 
-def get_list_of_operations(telegram_address):
+def get_list_of_operations(telegram_address: int):
     """Make .csv file with all user's operations.
 
     :param telegram_address: user's address.
@@ -157,7 +155,8 @@ def get_list_of_operations(telegram_address):
     session.commit()
 
 
-def get_prefix_balance(user_data, end_date="9999-99-99"):
+def get_prefix_balance(user_data: sqlalchemy.orm.query.Query,
+                       end_date: str="9999-99-99"):
     """Get user's balance by a period contained in user_data.
 
     :param user_data: SQLAlchemy query object.
@@ -169,7 +168,7 @@ def get_prefix_balance(user_data, end_date="9999-99-99"):
     for record in user_data:
         if record.date > end_date:
             break
-        if record.operation_type == OperationType.BUY_OPERATION:
+        if record.operation_type == OperationType.BUY:
             balance[record.company_symbol] -= record.price *\
                                               record.count_of_stocks
         else:
@@ -178,7 +177,8 @@ def get_prefix_balance(user_data, end_date="9999-99-99"):
     return balance
 
 
-def get_prefix_count_of_stocks(user_data, end_date="9999-99-99"):
+def get_prefix_count_of_stocks(user_data: sqlalchemy.orm.query.Query,
+                               end_date: str="9999-99-99"):
     """Get count of stocks from every company from a\
     period contained in user_data.
 
@@ -186,19 +186,20 @@ def get_prefix_count_of_stocks(user_data, end_date="9999-99-99"):
     :param end_date: date till we watch values.
     :return: dictionary {company symbol: count of stocks bought by user}.
     """
+    print(type(user_data))
     companies_tickers = [x.company_symbol for x in user_data]
     count_of_stocks = dict.fromkeys(companies_tickers, 0)
     for record in user_data:
         if record.date > end_date:
             break
-        if record.operation_type == OperationType.BUY_OPERATION:
+        if record.operation_type == OperationType.BUY:
             count_of_stocks[record.company_symbol] += record.count_of_stocks
         else:
             count_of_stocks[record.company_symbol] -= record.count_of_stocks
     return count_of_stocks
 
 
-def get_current_profit(telegram_address):
+def get_current_profit(telegram_address: int):
     """Get last updated stocks' costs and user's profit.
 
     :return: Dict. companies_info {company symbol, [actual cost of
@@ -216,7 +217,8 @@ def get_current_profit(telegram_address):
     companies_info = dict.fromkeys(companies_tickers)
 
     query_data_list = [QueryData(symbol=x) for x in companies_tickers]
-    async_request(query_data_list, [QueryType.CURRENCY, QueryType.CURRENT_COST])
+    async_request(query_data_list, [QueryType.CURRENCY,
+                                    QueryType.CURRENT_COST])
 
     for query_data in query_data_list:
         ticker = query_data.symbol
@@ -234,7 +236,7 @@ def get_current_profit(telegram_address):
     return companies_info, currencies_info
 
 
-def get_period_profit(begin_date, end_date, telegram_address):
+def get_period_profit(begin_date: str, end_date: str, telegram_address: int):
     """Get period data of user's profit.
 
     :return: dict. {currency: list of datetime objects, list of user's profit}.
@@ -261,11 +263,12 @@ def get_period_profit(begin_date, end_date, telegram_address):
     # Make the Ox values by dates from union of Ox values from each company.
     dates_set = set()
     for symbol in companies_symbols:
-        dates_set = dates_set.union(set(companies_stocks_period_cost[symbol][0]))
+        dates_set = dates_set.union(set(companies_stocks_period_cost[symbol]
+                                        [0]))
     dates_list = list(dates_set)
     dates_list.sort()
 
-    def get_cost_by_date(date_cost, symbol):
+    def get_cost_by_date(date_cost: datetime.datetime, symbol: str):
         """Get cost of stocks of a company bu current date.
 
         :param date_cost: date from which we want to know stock cost.
