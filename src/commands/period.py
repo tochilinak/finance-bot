@@ -39,6 +39,14 @@ class PeriodGetter:
         self.map_to_parent = map_to_parent
 
     @staticmethod
+    def create_last_update_period(context: CallbackContext, text: str):
+        """Try to write information about lust_update period to user data."""
+        if match(r'^last.update$', text):
+            context.user_data["period"] = Period("lu")
+            return True
+        return False
+
+    @staticmethod
     def create_custom_period(context: CallbackContext, text: str):
         """Try to write information about custom period to user data."""
         if match(se_dates, text):
@@ -81,13 +89,16 @@ class PeriodGetter:
 
         def res(update: Update, context: CallbackContext):
             text = update.message.text
-            if text == '':
+            if text is None:
                 return PeriodGetter.ask_period(update)
             else:
                 if PeriodGetter.create_custom_period(context, text):
                     # now period is in user_data["period"] and we can go
                     return self.callback(update, context)
                 if PeriodGetter.create_some_days_period(context, text):
+                    # now period is in user_data["period"] and we can go
+                    return self.callback(update, context)
+                if PeriodGetter.create_last_update_period(context, text):
                     # now period is in user_data["period"] and we can go
                     return self.callback(update, context)
                 return PeriodGetter.ask_period(update)

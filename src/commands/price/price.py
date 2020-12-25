@@ -2,8 +2,10 @@
 Create handler for /price command.
 
 Command give user prices for the company's shares for the specified period
-User can enter "/price <company ticker>" or just "/price"
+User can enter "/price <company tickers>, <period>", "/price <company ticker>"
+or just "/price"
 """
+from re import sub
 from telegram import Update
 from telegram.ext import (
     CommandHandler,
@@ -35,13 +37,15 @@ def price_start(update: Update, context: CallbackContext):
     """
     Srart of conversation.
 
-    Asks for a ticker if it is not specified and return key to the next part
-    of conversation.
+    Asks for a tickers if they are not specified and return
+    key to the next part of conversation.
     """
     # context.args is list of words after command
     if not context.args:
         update.message.reply_text(
-            'You can use the command like this: "/price <company ticker>"'
+            'You can use the command like this: '
+            '"/price <company tickers>, <period>" or "/price <company ticker>"'
+            '\nYou can get more information with "/help price"'
         )
         update.message.reply_text(
             "Ok, now I need to know the company you are interested in\n"
@@ -50,25 +54,36 @@ def price_start(update: Update, context: CallbackContext):
         )
         return "ticker"
 
-    # /price is useless part of message now
+    # '/price' is useless part of message now
     update.message.text = ' '.join(context.args)
     return get_ticker(update, context)
 
 
 def get_ticker(update: Update, context: CallbackContext):
     """
-    Get company ticker or "my" from user and ask about period.
+    Get company tickers or "my" from user and ask about period.
 
-    It can be activated from pricestart (ticker specified) or at state "ticker"
+    It can be activated from price_start (tickers are specified)
+    or at state "ticker"
     """
-    text = update.message.text.upper()
-    if text == "MY":
+    text = update.message.text
+
+    # Need to separate tickers from period
+    text += ",  #"
+    args = text.split(", ")
+    tickers = args[0].upper()
+    period = args[1]
+    if period == "#":
+        period = None
+
+    if tickers == "MY":
         context.user_data["tickers"] = tickers_list(update.message.chat_id)
     else:
-        context.user_data["tickers"] = [text.upper()]
+        tickers = sub(r" +", " ", tickers)
+        context.user_data["tickers"] = tickers.split(' ')
 
-    # ticker is useless part of message now
-    update.message.text = ''
+    # tickers are useless part of message now
+    update.message.text = period
     return PERIOD_GETTER.start_getting_period()(update, context)
 
 

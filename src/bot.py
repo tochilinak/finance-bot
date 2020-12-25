@@ -5,6 +5,7 @@ from telegram.ext import (
     CallbackContext
 )
 import config
+from commands.help import help_main
 from commands.price.price import price_handler
 from commands.find_company import find_company_handler
 from commands.list_of_interesting.add import add_to_list_handler
@@ -64,7 +65,7 @@ def main():
     dispatcher.add_handler(CommandHandler("start", start))
 
     # Add handler for /help command
-    dispatcher.add_handler(CommandHandler("help", help_bot))
+    dispatcher.add_handler(CommandHandler("help", help_main))
 
     # Add conversation handler for /price command
     dispatcher.add_handler(price_handler)
