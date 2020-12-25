@@ -97,8 +97,14 @@ def delete_users_ticker(telegram_address: int, symbol: str):
 
 
 def add_operation(telegram_address: int, symbol: str, count: int,
-                  price: float, date: str, operation_type: IntEnum):
+                  date: str, operation_type: IntEnum, price: float=None):
     """Add operation to the table."""
+    if price is None:
+        # Getting price.
+        if len(get_period_data_of_cost(date, date, symbol)[1]) == 0:
+            # Date isn't a trade day.
+            return False
+        price = get_period_data_of_cost(date, date, symbol)[1][0]
     currency = get_currency(symbol)
     current_operation = Operations(telegram_address=telegram_address,
                                    company_symbol=symbol,
@@ -150,7 +156,7 @@ def get_list_of_operations(telegram_address: int):
 
 
 def get_prefix_balance(user_data: sqlalchemy.orm.query.Query,
-                       end_date="9999-99-99"):
+                       end_date: str="9999-99-99"):
     """Get user's balance by a period contained in user_data.
 
     :param user_data: SQLAlchemy query object.
@@ -172,7 +178,7 @@ def get_prefix_balance(user_data: sqlalchemy.orm.query.Query,
 
 
 def get_prefix_count_of_stocks(user_data: sqlalchemy.orm.query.Query,
-                               end_date="9999-99-99"):
+                               end_date: str="9999-99-99"):
     """Get count of stocks from every company from a\
     period contained in user_data.
 
