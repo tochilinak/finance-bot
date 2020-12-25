@@ -185,7 +185,6 @@ def get_prefix_count_of_stocks(user_data: sqlalchemy.orm.query.Query,
     :param end_date: date till we watch values.
     :return: dictionary {company symbol: count of stocks bought by user}.
     """
-    print(type(user_data))
     companies_tickers = [x.company_symbol for x in user_data]
     count_of_stocks = dict.fromkeys(companies_tickers, 0)
     for record in user_data:
