@@ -45,6 +45,7 @@ def price_start(update: Update, context: CallbackContext):
         update.message.reply_text(
             'You can use the command like this: '
             '"/price <company tickers>, <period>" or "/price <company ticker>"'
+            '\nYou can get more information with "/help price"'
         )
         update.message.reply_text(
             "Ok, now I need to know the company you are interested in\n"
