@@ -11,7 +11,7 @@ some_days_filter = Filters.regex(some_days)
 
 # Patterns for operation info
 OPERATION_INFO = r'^\w+, \d+, \d{4}-\d{2}-\d{2}$'
-PRICE_OPERATION_INFO = r'^\w+, \d+, \d{4}-\d{2}-\d{2}, \d+$'
+PRICE_OPERATION_INFO = r'^\w+, \d+, \d{4}-\d{2}-\d{2}, \d+(?:\.\d+)?$'
 
 simple_text_filter = Filters.text & ~Filters.command
 
