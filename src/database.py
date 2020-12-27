@@ -200,8 +200,11 @@ def get_prefix_count_of_stocks(user_data: sqlalchemy.orm.query.Query,
 def get_current_profit(telegram_address: int):
     """Get last updated stocks' costs and user's profit.
 
-    :return: Dict. companies_info {company symbol, [actual cost of
-    stocks, user's profit, date of last update]}, dict. curriencies_info
+    :return: dict, dict. companies_info, currencies_info.
+    companies_info:
+    {company symbol, [actual cost of
+    stocks, user's profit, date of last update, currency]}
+    currencies_info:
     {currency: [summary actual costs of stocks bought in this currency,
     user's profit on this currency]}.
     """
@@ -221,10 +224,11 @@ def get_current_profit(telegram_address: int):
     for query_data in query_data_list:
         ticker = query_data.symbol
         ticker_stocks_info = query_data.result[QueryType.CURRENT_COST]
+        currency = query_data.result[QueryType.CURRENCY]
         current_stock_cost = ticker_stocks_info[0] * count_of_stocks[ticker]
         last_update = ticker_stocks_info[1]
         companies_info[ticker] = [current_stock_cost, current_stock_cost +
-                                  balance[ticker], last_update]
+                                  balance[ticker], last_update, currency]
     currencies_info = {x.currency: [0, 0] for x in user_data}
     for query_data in query_data_list:
         ticker = query_data.symbol

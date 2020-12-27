@@ -8,10 +8,11 @@ from database import get_current_profit
 
 def company_info_line(ticker, information):
     """Cretate string in format "ticker: profit info"."""
-    result = f'*{ticker}*:\n'
-    cost = f'{information[0]:.4f}'.replace(".", r"\.")
+    currency = information[3]
+    result = f'*{ticker}* \(in {currency}\):\n'
+    cost = f'{information[0]:.2f}'.replace(".", r"\.")
     cost = cost.replace("-", r"\-")
-    profit = f'{information[1]:.4f}'.replace(".", r"\.")
+    profit = f'{information[1]:.2f}'.replace(".", r"\.")
     profit = profit.replace("-", r"\-")
     last_update = str(information[2]).replace("-", r"\-")
     result += f'actual cost: {cost}, '
@@ -23,9 +24,9 @@ def company_info_line(ticker, information):
 def currency_info_line(currency, information):
     """Cretate string in format "currency: profit info"."""
     result = f'*{currency}*:\n'
-    summary_cost = f'{information[0]:.4f}'.replace(".", r"\.")
+    summary_cost = f'{information[0]:.2f}'.replace(".", r"\.")
     summary_cost = summary_cost.replace("-", r"\-")
-    profit = f'{information[1]:.4f}'.replace(".", r"\.")
+    profit = f'{information[1]:.2f}'.replace(".", r"\.")
     profit = profit.replace("-", r"\-")
     result += f'summary actual costs: {summary_cost}, '
     result += f'profit: {profit}\n'
