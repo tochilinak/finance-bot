@@ -98,6 +98,7 @@ def delete_users_ticker(telegram_address: int, symbol: str):
 def add_operation(telegram_address: int, operation_type: IntEnum, symbol: str,
                   count: int, date: str, price: float = None):
     """Add operation to the table."""
+    symbol = symbol.upper()
     if price is None:
         # Getting price.
         if len(get_period_data_of_cost(date, date, symbol)[1]) == 0:
