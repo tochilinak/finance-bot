@@ -136,10 +136,11 @@ def delete_operation(telegram_address: int, operation_id: int):
     return success
 
 
-def get_list_of_operations(telegram_address: int):
+def get_list_of_operations(telegram_address: int, file_name: str):
     """Make .csv file with all user's operations.
 
     :param telegram_address: user's address.
+    :param file_name: name of output file (with extension).
     """
     session = sessionmaker(bind=engine)()
     headers = [x.name for x in Operations.__table__.columns]
@@ -148,7 +149,7 @@ def get_list_of_operations(telegram_address: int):
     content = [[x.id, x.telegram_address, x.company_symbol,
                 x.count_of_stocks, x.price, x.currency, x.date,
                 OperationType(x.operation_type).name] for x in q]
-    with open("out.csv", "w") as file:
+    with open(file_name, "w") as file:
         writer = csv.writer(file)
         writer.writerows([headers] + content)
     session.commit()
