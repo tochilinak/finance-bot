@@ -74,15 +74,18 @@ def get_period_data_of_cost_yahoo(start, end, symbol):
         return (datetime.date.fromisoformat(date) +
                 datetime.timedelta(days=delta)).isoformat()
 
-    company = yfinance.Ticker(symbol)
-    res = company.history(start=add_day(start, -1), end=add_day(end))["Close"]
+    try:
+        company = yfinance.Ticker(symbol)
+        res = company.history(start=add_day(start, -1), end=add_day(end))["Close"]
 
-    # remove extra dates
-    res = res[(res.index.strftime("%Y-%m-%d") >= start) &
-              (res.index.strftime("%Y-%m-%d") <= end)]
+        # remove extra dates
+        res = res[(res.index.strftime("%Y-%m-%d") >= start) &
+                  (res.index.strftime("%Y-%m-%d") <= end)]
 
-    dates = [x.to_pydatetime() for x in res.index]
-    return dates, list(res)
+        dates = [x.to_pydatetime() for x in res.index]
+        return dates, list(res)
+    except:
+        return [], []
 
 
 def get_period_data_of_cost(start, end, symbol):
