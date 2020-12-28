@@ -66,3 +66,23 @@ class MoexCurrency(APIQuery):
                 # this cell contains the name of a currency.
                 return description_string[cur_col]
         return None
+
+
+class MoexPrimaryBoard(APIQuery):
+    empty_return = None
+
+    def set_report(self):
+        self.report_list = [self.symbol]
+
+    def get_server_response(self):
+        query = "https://iss.moex.com/iss/securities/" + self.symbol + ".json"
+        self.response = self.session.get(query)
+
+    def process_json(self, resp):
+        resp = resp["boards"]
+        board_col = resp["columns"].index("boardid")
+        primary_col = resp["columns"].index("is_primary")
+        for description_string in resp["data"]:
+            if description_string[primary_col] == 1:
+                return description_string[board_col]
+        return None

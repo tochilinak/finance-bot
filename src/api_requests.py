@@ -62,10 +62,20 @@ def symbol_by_name(name, result_size=5):
     return [[y, x] for x, y in found.items()]
 
 
+get_primary_board_moex = query_function_factory(MoexPrimaryBoard)
+
+
 def get_period_data_of_cost_moex(start, end, symbol):
-    resp = apimoex.get_board_history(requests.Session(), symbol, start, end)
-    return [[datetime.datetime.strptime(x['TRADEDATE'], "%Y-%m-%d") for x
-             in resp], [float(x['CLOSE']) for x in resp]]
+    resp = apimoex.get_market_history(requests.Session(), symbol, start, end)
+    board = get_primary_board_moex(QueryData(symbol=symbol))
+    dates, prices = [], []
+    for line in resp:
+        if line['CLOSE'] is None or line['BOARDID'] != board:
+            continue
+        dates += [datetime.datetime.strptime(line['TRADEDATE'], "%Y-%m-%d")]
+        prices += [float(line['CLOSE'])]
+
+    return dates, prices
 
 
 def get_period_data_of_cost_yahoo(start, end, symbol):
