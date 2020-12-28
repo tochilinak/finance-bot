@@ -37,11 +37,12 @@ class MoexSymbolByName(APIQuery):
 
     def get_server_response(self):
         query = ("https://iss.moex.com/iss/securities.json?q=" + self.name
-                 + "&securities.columns=name,secid,is_traded&iss.meta=off")
+                 + "&securities.columns=name,secid,is_traded,"
+                 "marketprice_boardid&iss.meta=off")
         self.response = self.session.get(query)
 
     def process_json(self, resp):
-        only_active = filter(lambda x: x[2],
+        only_active = filter(lambda x: x[2] and x[3] is not None,
                             resp['securities']['data'])
         return [x[:2] for x in only_active]
 
