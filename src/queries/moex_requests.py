@@ -12,7 +12,7 @@ class MoexCost(APIQuery):
     def get_server_response(self):
         query = ("https://iss.moex.com/iss/engines/stock/markets/shares/"
                  f"securities/{self.symbol}/candles.json?"
-                 "interval=1&iss.reverse=true")
+                 "interval=1&iss.reverse=true&from=2020-01-01")
         self.response = self.session.get(query)
 
     def process_json(self, resp):
