@@ -29,22 +29,6 @@ class MoexCost(APIQuery):
         return price, date
 
 
-class MoexCompanyList(APIQuery):
-    empty_return = []
-
-    def get_server_response(self):
-        query = ("https://iss.moex.com/iss/engines/stock/markets/shares/"
-                 "boards/TQBR/securities.json?securities.columns=SECID&"
-                 "iss.meta=off&iss.only=securities")
-        self.response = self.session.get(query)
-
-    def process_json(self, resp):
-        return [x[0] for x in resp['securities']['data']]
-
-
-moex_company_list = query_function_factory(MoexCompanyList)
-
-
 class MoexSymbolByName(APIQuery):
     empty_return = []
 
@@ -53,14 +37,13 @@ class MoexSymbolByName(APIQuery):
 
     def get_server_response(self):
         query = ("https://iss.moex.com/iss/securities.json?q=" + self.name
-                 + "&securities.columns=name,secid&iss.meta=off")
+                 + "&securities.columns=name,secid,is_traded&iss.meta=off")
         self.response = self.session.get(query)
 
     def process_json(self, resp):
-        company_list = moex_company_list(QueryData())
-        only_stock = filter(lambda x: x[1] in company_list,
+        only_active = filter(lambda x: x[2],
                             resp['securities']['data'])
-        return [x[:2] for x in only_stock]
+        return [x[:2] for x in only_active]
 
 
 class MoexCurrency(APIQuery):
