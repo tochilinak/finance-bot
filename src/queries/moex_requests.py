@@ -58,10 +58,11 @@ class MoexCurrency(APIQuery):
 
     def process_json(self, resp):
         resp = resp["boards"]
-        col = resp["columns"].index("currencyid")
+        cur_col = resp["columns"].index("currencyid")
+        primary_col = resp["columns"].index("is_primary")
         for description_string in resp["data"]:
             # there is an information of company's currency in such string.
-            if description_string[1] == "TQBR":
+            if description_string[primary_col] == 1:
                 # this cell contains the name of a currency.
-                return description_string[col]
+                return description_string[cur_col]
         return None
